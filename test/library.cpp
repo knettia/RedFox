@@ -1,0 +1,24 @@
+// redfox
+#include <redfox/core/base.hpp>
+
+int main()
+{
+	auto lib = RF::library_m::self().load_library("bin/libsquare.dylib");
+
+	auto func = lib->get_function<int(int)>("square");
+
+	if (func)
+	{
+		std::initializer_list<int> to_square = { 10, 25, 18, 19, 82, 2, 74, 101};
+
+		for (const int i : to_square)
+		{
+			int result = func(i);
+			RF::ignoramus::logf(RF::ignoramus_t::info, "Squared <0> to <1>", i, result);
+		}
+	}
+
+	RF::library_m::self().unload_library("bin/libsquare.dylib");
+
+	return 0;
+}
