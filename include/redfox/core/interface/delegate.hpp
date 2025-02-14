@@ -8,7 +8,7 @@
 
 namespace RF
 {
-	enum class WindowAPI
+	enum class window_API
 	{
 		X11,
 		Wayland,
@@ -16,37 +16,37 @@ namespace RF
 		Win32
 	};
 
-	enum class GraphicsAPI
+	enum class graphics_API
 	{
 		Vulkan,
 		Metal,
 		DirectX
 	};
 
-	struct DelegateInfo
+	struct delegate_info
 	{
 		std::string name;
-		RF::WindowAPI api;
+		RF::window_API api;
 	};
 
-	class Delegate
+	class delegate
 	{
 	private:
-		RF::DelegateInfo info;
+		RF::delegate_info info;
 	public:
-		Delegate(RF::DelegateInfo info) : info(std::move(info)) { }
+		delegate(RF::delegate_info info) : info(std::move(info)) { }
 
 		void query_monitor_count(int *c);
 		void query_master_monitor(int *i);
 
-		void query_monitor_data(int i, RF::MonitorData *dst);
+		void query_monitor_data(int i, RF::monitor_data *dst);
 	};
 
-	struct WindowCreateInfo
+	struct window_create_info
 	{
 		std::string title;
-		RF::GraphicsAPI api;
+		RF::graphics_API api;
 		RF::uivec2 size;
-		int index;
+		int monitor;
 	};
-}
+} // namespace RF

@@ -6,10 +6,10 @@
 
 namespace RF
 {
-	struct MonitorData
+	struct monitor_data
 	{
 		std::string name;
 		RF::uivec2 resolution;
 		uint16_t refresh_rate;
 	};
-}
+} // namespace RF

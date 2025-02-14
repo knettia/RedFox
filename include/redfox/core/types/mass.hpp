@@ -1,11 +1,13 @@
 #pragma once
 
+#include <algorithm>
 #include <new>      // For placement new
 #include <utility>  // For std::move
 #include <stdexcept>
 #include <span>
 #include <optional>
 #include <memory> // std::destroy_at
+#include <vector>
 
 namespace RF
 {
@@ -19,7 +21,6 @@ namespace RF
 		mutable std::vector<std::size_t> last_found_;
 	public:
 		mass() = default;
-		
 		~mass() { clear(); }
 
 		T *data() noexcept { return reinterpret_cast<T*>(buffer_); }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <vector>
 #include <stack>
 #include <memory>
@@ -12,12 +13,12 @@ namespace RF
 	class pool
 	{
 	private:
-		const ull max_bytes;
-		const ull max_elements;
+		const RF::ull max_bytes;
+		const RF::ull max_elements;
 
 		std::vector<T> data_;
 		std::vector<std::size_t> free_indices_;
-		ull allocated_memory_;
+		RF::ull allocated_memory_;
 		std::size_t allocated_count_;
 	public:
 		template <RF::ull scale>
@@ -65,24 +66,24 @@ namespace RF
 			allocated_memory_ -= sizeof(T);
 		}
 
-		T& get(std::size_t index)
+		T &get(std::size_t index)
 		{
 			if (index >= data_.size())
 			{ throw std::runtime_error("index out of bounds"); }
 			return data_[index];
 		}
 
-		const T& get(std::size_t index) const
+		const T &get(std::size_t index) const
 		{
 			if (index >= data_.size())
 			{ throw std::runtime_error("index out of bounds"); }
 			return data_[index];
 		}
 
-		ull memory() const
+		RF::ull memory() const
 		{ return allocated_memory_; }
 
-		ull max_memory() const
+		RF::ull max_memory() const
 		{ return max_bytes; }
 
 		std::size_t size() const

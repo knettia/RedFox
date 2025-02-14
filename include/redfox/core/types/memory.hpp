@@ -82,4 +82,4 @@ namespace RF
 		RF::ld target_count = static_cast<RF::ld>(RF::membytes(value)) / to_scale;
 		return RF::memory_t<to_scale>(target_count);
 	}
-}
+} // namespace RF

@@ -3,7 +3,11 @@
 
 int main()
 {
+	#if defined (__linux__)
+	auto lib = RF::library_m::self().load_library("bin/libsquare.so");
+	#elif defined (__APPLE__)
 	auto lib = RF::library_m::self().load_library("bin/libsquare.dylib");
+	#endif
 
 	auto func = lib->get_function<int(int)>("square");
 

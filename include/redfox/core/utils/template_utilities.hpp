@@ -16,7 +16,7 @@ namespace RF
 		std::is_class<target_type>,
 		std::is_base_of<src_type, target_type>
 	> {};
-}
+} // namespace RF
 
 // macros
 #define RF_equivalent_template(src_type, ...) \

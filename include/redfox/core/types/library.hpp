@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <functional>
 
 #if defined (__linux__) || defined (__APPLE__)
 #include <dlfcn.h>
@@ -46,4 +47,4 @@ namespace RF
 		std::shared_ptr<lib> load_library(const std::string_view libname);
 		void unload_library(const std::string_view libname);
 	};
-}
+} // namespace RF

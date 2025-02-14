@@ -2,6 +2,6 @@
 
 int square(int v)
 {
-	printf("libsquare.c: now squering %d!\n", v);
+	printf("now squering %d @ libsquare.c\n", v);
 	return v * v;
 }

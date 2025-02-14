@@ -29,7 +29,7 @@ namespace RF
 		static inline void logf_debug(RF::ignoramus_t type, std::string_view fmt, Args &&...args)
 		{
 			#ifdef NDEBUG
-			return; // null-op
+			return; // no-op
 			#endif
 
 			RF::ignoramus::logf(type, fmt, args...);
@@ -39,4 +39,4 @@ namespace RF
 		static std::string type_to_hue(RF::ignoramus_t t);
 		static std::string type_to_str(RF::ignoramus_t t); // ignoramus.cpp
 	};
-}
+} // namespace RF

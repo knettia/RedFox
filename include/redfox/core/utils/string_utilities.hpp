@@ -6,7 +6,7 @@
 #include <string_view>
 // #include <charconv> // std::from_chars
 
-#include <vector>
+#include <array>
 #include <stdexcept>
 
 namespace RF
@@ -19,7 +19,7 @@ namespace RF
 		return std::move(oss).str();
 	}
 
-	inline bool is_str_number(const std::string &str)
+	inline bool is_str_number(const std::string_view str)
 	{
 		if (str.empty())
 		{ return false; }
@@ -33,7 +33,6 @@ namespace RF
 
 		return true;
 	}
-
 
 	template <typename ...Args>
 	inline std::string format_view(std::string_view fmt, Args &&...args)
@@ -68,4 +67,4 @@ namespace RF
 		return std::move(result).str();
 	}
 
-}
+} // namespace RF
