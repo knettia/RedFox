@@ -36,10 +36,9 @@ namespace RF
 	public:
 		delegate(RF::delegate_info info) : info(std::move(info)) { }
 
-		void query_monitor_count(int *c);
-		void query_master_monitor(int *i);
+		int monitor_count();
 
-		void query_monitor_data(int i, RF::monitor_data *dst);
+		RF::monitor_data monitor_data(int i);
 	};
 
 	struct window_create_info

@@ -3,22 +3,19 @@
 
 int main()
 {
-	RF::DelegateInfo delegate_info = {
+	RF::delegate_info delegate_info = {
 		.name = "RedFox Delegate",
-		.api = RF::WindowAPI::Cocoa
+		.api = RF::window_API::Cocoa
 	};
 
-	RF::Delegate delegate = RF::Delegate(delegate_info);
+	RF::delegate delegate = RF::delegate(delegate_info);
 
-	int monitor_count;
-	delegate.query_monitor_count(&monitor_count);
+	RF::ignoramus::logf(RF::ignoramus_t::info, "Monitor count is <0>", delegate.monitor_count());
+	RF::ignoramus::logf(RF::ignoramus_t::info, " ----");
 
-	RF::ignoramus::logf(RF::ignoramus_t::info, "Monitor count is <0>", monitor_count);
-
-	for (int i = 0; i < monitor_count; ++i)
+	for (int i = 0; i < delegate.monitor_count(); ++i)
 	{
-		RF::MonitorData data;
-		delegate.query_monitor_data(i, &data);
+		RF::monitor_data data = delegate.monitor_data(i);
 		
 		// print data
 		RF::ignoramus::logf(RF::ignoramus_t::info, "Name: <0>", data.name);
@@ -26,7 +23,7 @@ int main()
 		RF::ignoramus::logf(RF::ignoramus_t::info, "Refresh Rate: <0>", data.refresh_rate);
 
 		// splitter
-		if (i != monitor_count - 1)
+		if (i != delegate.monitor_count() - 1)
 		{ RF::ignoramus::logf(RF::ignoramus_t::info, " ----"); }
 	}
 

@@ -1,5 +1,7 @@
 # compile
-if(APPLE)
+if(UNIX AND NOT APPLE)
+	set(MONITOR_SOURCES "interface/monitor/x11_monitor.cpp")
+elseif(APPLE)
 	set(MONITOR_SOURCES "interface/monitor/cocoa_monitor.mm")
 endif()
 
