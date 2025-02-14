@@ -2,7 +2,8 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <IOKit/graphics/IOGraphicsLib.h>
 
-#include "redfox/core/base.hpp"
+#include "redfox/core/interface/delegate.hpp"
+#include "redfox/core/interface/monitor.hpp"
 
 void RF::Delegate::query_monitor_count(int *c)
 {
@@ -47,7 +48,7 @@ void RF::Delegate::query_master_monitor(int *i)
 }
 
 // internal
-NSString* _Nullable screen_to_display_name(CGDirectDisplayID displayID)
+NSString* _Nullable RF_screen_to_display_name(CGDirectDisplayID displayID)
 {
 	NSString *screenName = nil;
 	
@@ -68,7 +69,7 @@ void RF::Delegate::query_monitor_data(int index, RF::MonitorData *dst)
 {
 	@autoreleasepool
 	{
-		if (dst == NULL)
+		if (nullptr == dst)
 		{ return; }
 
 		uint32_t online_displays = 0;
@@ -79,9 +80,9 @@ void RF::Delegate::query_monitor_data(int index, RF::MonitorData *dst)
 		{ return; }
 
 		CGDirectDisplayID display_id = display_list[index];
-		NSString *display_name = screen_to_display_name(display_id);
+		NSString *display_name = RF_screen_to_display_name(display_id);
 
-		if (NULL != display_name)
+		if (nullptr != display_name)
 		{ dst->name = [display_name UTF8String]; }
 		else
 		{ dst->name = "Unknown"; }
@@ -89,7 +90,7 @@ void RF::Delegate::query_monitor_data(int index, RF::MonitorData *dst)
 		dst->resolution = RF::uivec2(CGDisplayPixelsWide(display_id), CGDisplayPixelsHigh(display_id));
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display_id);
-		if (mode != NULL)
+		if (NULL != mode)
 		{
 			double refresh_rate = CGDisplayModeGetRefreshRate(mode);
 
