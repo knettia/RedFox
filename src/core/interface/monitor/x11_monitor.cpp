@@ -1,6 +1,6 @@
+#if defined (__linux__)
 // redfox
 #include "redfox/core/types/library.hpp"
-
 #include "redfox/core/interface/delegate.hpp"
 #include "redfox/core/interface/monitor.hpp"
 
@@ -41,13 +41,16 @@ int RF::delegate::monitor_count()
 {
 	Display* display = func_XOpenDisplay(NULL);
 	if (!display)
-	{ throw std::runtime_error("Failed to open X display"); }
+	{ throw std::runtime_error("failed to open X display"); }
 	
 	Window root = func_XDefaultRootWindow(display);
 	
 	XRRScreenResources* screen_res = func_XRRGetScreenResourcesCurrent(display, root);
 	if (!screen_res)
-	{ throw std::runtime_error("Failed to get screen resources"); }
+	{
+		func_XRRFreeScreenResources(screen_res);
+		throw std::runtime_error("failed to get screen resources");
+	}
 
 	return screen_res->noutput;
 
@@ -55,7 +58,8 @@ int RF::delegate::monitor_count()
 	func_XCloseDisplay(display);
 }
 
-std::vector<uint8_t> get_edid(Display* display, RROutput output)
+// internal Linux build
+std::vector<uint8_t> RF_get_edid(Display* display, RROutput output)
 {
 	Atom edid_atom = func_XInternAtom(display, "EDID", True);
 	if (edid_atom == None)
@@ -66,12 +70,14 @@ std::vector<uint8_t> get_edid(Display* display, RROutput output)
 	unsigned long nitems, bytes_after;
 	unsigned char* prop_data = nullptr;
  
-	func_XRRGetOutputProperty(display, output, edid_atom, 0, 128, False, False,
-						 AnyPropertyType, &actual_type, &actual_format,
-						 &nitems, &bytes_after, &prop_data);
+	func_XRRGetOutputProperty(
+		display, output, edid_atom, 0, 128, False, False,
+		AnyPropertyType, &actual_type, &actual_format, 
+		&nitems, &bytes_after, &prop_data
+	);
  
 	if (!prop_data || nitems == 0)
-	{ throw std::runtime_error("Failed to retrieve EDID data"); }
+	{ throw std::runtime_error("failed to retrieve EDID data"); }
  
 	std::vector<uint8_t> edid(prop_data, prop_data + nitems);
 	func_XFree(prop_data);
@@ -80,15 +86,27 @@ std::vector<uint8_t> get_edid(Display* display, RROutput output)
 
 #include <cstring>
 
-std::string parse_edid_name(const std::vector<uint8_t>& edid)
+// internal Linux build
+std::string RF_parse_edid_name(const std::vector<uint8_t>& edid)
 {
 	if (edid.size() < 128)
-	{ throw std::runtime_error("Invalid EDID size"); }
- 
-	for (int i = 54; i <= 108; i += 18) // Descriptor blocks at 0x36, 0x48, 0x5A, 0x6C
+	{ throw std::runtime_error("invalid EDID size"); }
+
+	/*
+	 * descriptor blocks:
+	 * 0x36
+	 * 0x48
+	 * 0x5A
+	 * 0x6C	
+	 */
+	for (int i = 54; i <= 108; i += 18)
 	{
-		if (edid[i] == 0x00 && edid[i + 1] == 0x00 && edid[i + 2] == 0x00 &&
-			edid[i + 3] == 0xFC) // 0xFC = Display Name Descriptor
+		if (
+			   edid[i]     == 0x00
+			&& edid[i + 1] == 0x00
+			&& edid[i + 2] == 0x00
+			&& edid[i + 3] == 0xFC
+		)
 		{
 			char name[14] = {};
 			std::memcpy(name, &edid[i + 5], 13);
@@ -96,7 +114,7 @@ std::string parse_edid_name(const std::vector<uint8_t>& edid)
 		}
 	}
  
-	throw std::runtime_error("Monitor name not found in EDID");
+	throw std::runtime_error("monitor name not found in EDID");
 }
  
 RF::monitor_data RF::delegate::monitor_data(int index)
@@ -108,22 +126,22 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 	{ throw std::runtime_error("Failed to open X display"); }
  
 	Window root = func_XDefaultRootWindow(display);
-	XRRScreenResources* screen_res = func_XRRGetScreenResourcesCurrent(display, root);
+	XRRScreenResources *screen_res = func_XRRGetScreenResourcesCurrent(display, root);
 	if (!screen_res)
 	{ 
 		func_XCloseDisplay(display);
 		throw std::runtime_error("Failed to get screen resources"); 
 	}
- 
-	XRROutputInfo* output_info = func_XRRGetOutputInfo(display, screen_res, screen_res->outputs[index]);
+
+	XRROutputInfo *output_info = func_XRRGetOutputInfo(display, screen_res, screen_res->outputs[index]);
 	if (!output_info)
 	{
 		func_XRRFreeScreenResources(screen_res);
 		func_XCloseDisplay(display);
 		throw std::runtime_error("Failed to get output info");
 	}
- 
-	XRRCrtcInfo* crtc_info = func_XRRGetCrtcInfo(display, screen_res, output_info->crtc);
+
+	XRRCrtcInfo *crtc_info = func_XRRGetCrtcInfo(display, screen_res, output_info->crtc);
 	if (!crtc_info)
 	{
 		func_XRRFreeOutputInfo(output_info);
@@ -131,19 +149,15 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 		func_XCloseDisplay(display);
 		throw std::runtime_error("Failed to get CRTC info");
 	}
- 
-	// Get EDID and extract monitor name
+
 	try
 	{
-		auto edid = get_edid(display, screen_res->outputs[index]);
-		result.name = parse_edid_name(edid);
+		auto edid = RF_get_edid(display, screen_res->outputs[index]);
+		result.name = std::move(RF_parse_edid_name(edid));
 	}
 	catch (...)
-	{
-		result.name = std::string(output_info->name); // Fallback if EDID fails
-	}
- 
-	// Retrieve refresh rate properly
+	{ result.name = std::string(output_info->name); }
+
 	XRRModeInfo* mode_info = nullptr;
 	for (int i = 0; i < screen_res->nmode; i++)
 	{
@@ -153,7 +167,7 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 			break;
 		}
 	}
- 
+
 	if (!mode_info)
 	{
 		func_XRRFreeOutputInfo(output_info);
@@ -162,14 +176,17 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 		func_XCloseDisplay(display);
 		throw std::runtime_error("Failed to get mode info");
 	}
- 
+
 	result.refresh_rate = mode_info->dotClock / (mode_info->hTotal * mode_info->vTotal);
 	result.resolution = std::move(RF::uivec2(crtc_info->width, crtc_info->height));
- 
+
 	func_XRRFreeOutputInfo(output_info);
 	func_XRRFreeCrtcInfo(crtc_info);
 	func_XRRFreeScreenResources(screen_res);
 	func_XCloseDisplay(display);
- 
+
 	return result;
 }
+#else
+#error "fatal error: Linux source in non-Linux build"
+#endif
