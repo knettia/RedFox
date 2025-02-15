@@ -1,22 +1,24 @@
 #if defined (__APPLE__)
+// RedFox
+#include "RedFox/core/interface/delegate.hpp"
+#include "RedFox/core/interface/monitor.hpp"
+
+// Cocoa
 #import <Cocoa/Cocoa.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <IOKit/graphics/IOGraphicsLib.h>
 
-#include "redfox/core/interface/delegate.hpp"
-#include "redfox/core/interface/monitor.hpp"
-
-int RF::delegate::monitor_count()
+int RF::delegate::cocoa_monitor_count()
 {
 	unsigned int online_displays = 0;
 	CGError err = CGGetOnlineDisplayList(0, NULL, &online_displays);
 	if (err != kCGErrorSuccess)
 	{ throw std::runtime_error("fatal error fetching online display list"); }
-	return static_cast<int>(online_displays);
+	return online_displays;
 }
 
 // internal
-NSString* _Nullable RF_screen_to_display_name(CGDirectDisplayID displayID)
+NSString *_Nullable RF_cocoa_screen_to_display_name(CGDirectDisplayID displayID)
 {
 	NSString *screenName = nil;
 	
@@ -33,7 +35,7 @@ NSString* _Nullable RF_screen_to_display_name(CGDirectDisplayID displayID)
 	return nil;
 }
 
-RF::monitor_data RF::delegate::monitor_data(int index)
+RF::monitor_data RF::delegate::cocoa_monitor_data(int index)
 {
 	@autoreleasepool
 	{
@@ -47,7 +49,7 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 		{ throw std::runtime_error("fatal error fetching online display list"); }
 
 		CGDirectDisplayID display_id = display_list[index];
-		NSString *display_name = RF_screen_to_display_name(display_id);
+		NSString *display_name = RF_cocoa_screen_to_display_name(display_id);
 
 		if (nullptr != display_name)
 		{ result.name = [display_name UTF8String]; }

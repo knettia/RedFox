@@ -1,8 +1,8 @@
 #if defined (__linux__)
-// redfox
-#include "redfox/core/types/library.hpp"
-#include "redfox/core/interface/delegate.hpp"
-#include "redfox/core/interface/monitor.hpp"
+// RedFox
+#include "RedFox/core/types/library.hpp"
+#include "RedFox/core/interface/delegate.hpp"
+#include "RedFox/core/interface/monitor.hpp"
 
 // X11
 #include <X11/Xlib.h>
@@ -37,7 +37,7 @@ auto func_XRRFreeCrtcInfo = xrandr_lib->get_function<void(XRRCrtcInfo *)>("XRRFr
 auto func_XRRFreeOutputInfo = xrandr_lib->get_function<void(XRROutputInfo *)>("XRRFreeOutputInfo");
 auto func_XRRFreeScreenResources = xrandr_lib->get_function<void(XRRScreenResources *)>("XRRFreeScreenResources");
 
-int RF::delegate::monitor_count()
+int RF::delegate::x11_monitor_count()
 {
 	Display* display = func_XOpenDisplay(NULL);
 	if (!display)
@@ -59,7 +59,7 @@ int RF::delegate::monitor_count()
 }
 
 // internal Linux build
-std::vector<uint8_t> RF_get_edid(Display* display, RROutput output)
+std::vector<uint8_t> RF_x11_get_edid(Display* display, RROutput output)
 {
 	Atom edid_atom = func_XInternAtom(display, "EDID", True);
 	if (edid_atom == None)
@@ -87,7 +87,7 @@ std::vector<uint8_t> RF_get_edid(Display* display, RROutput output)
 #include <cstring>
 
 // internal Linux build
-std::string RF_parse_edid_name(const std::vector<uint8_t>& edid)
+std::string RF_x11_parse_edid_name(const std::vector<uint8_t>& edid)
 {
 	if (edid.size() < 128)
 	{ throw std::runtime_error("invalid EDID size"); }
@@ -117,7 +117,7 @@ std::string RF_parse_edid_name(const std::vector<uint8_t>& edid)
 	throw std::runtime_error("monitor name not found in EDID");
 }
  
-RF::monitor_data RF::delegate::monitor_data(int index)
+RF::monitor_data RF::delegate::x11_monitor_data(int index)
 {
 	RF::monitor_data result;
  
@@ -152,8 +152,8 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 
 	try
 	{
-		auto edid = RF_get_edid(display, screen_res->outputs[index]);
-		result.name = std::move(RF_parse_edid_name(edid));
+		auto edid = RF_x11_get_edid(display, screen_res->outputs[index]);
+		result.name = RF_x11_parse_edid_name(edid);
 	}
 	catch (...)
 	{ result.name = std::string(output_info->name); }
@@ -178,7 +178,7 @@ RF::monitor_data RF::delegate::monitor_data(int index)
 	}
 
 	result.refresh_rate = mode_info->dotClock / (mode_info->hTotal * mode_info->vTotal);
-	result.resolution = std::move(RF::uivec2(crtc_info->width, crtc_info->height));
+	result.resolution = RF::uivec2(crtc_info->width, crtc_info->height);
 
 	func_XRRFreeOutputInfo(output_info);
 	func_XRRFreeCrtcInfo(crtc_info);
