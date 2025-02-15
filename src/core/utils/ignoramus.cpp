@@ -1,4 +1,4 @@
-#include "redfox/core/utils/ignoramus.hpp" // header
+#include "RedFox/core/utils/ignoramus.hpp" // header
 
 std::string RF::ignoramus::type_to_hue(RF::ignoramus_t t)
 {

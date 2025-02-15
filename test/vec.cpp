@@ -1,5 +1,5 @@
-// redfox
-#include <redfox/core/base.hpp>
+// RedFox
+#include <RedFox/core/base.hpp>
 
 int main()
 {

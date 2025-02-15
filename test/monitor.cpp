@@ -1,11 +1,23 @@
-// redfox
-#include <redfox/core/base.hpp>
+// RedFox
+#include <RedFox/core/base.hpp>
+
+RF::window_API choose_api()
+{
+	#if defined (__linux__)
+	return RF::window_API::X11; // default to X11 for now
+	#elif defined (__APPLE__)
+	return RF::window_API::Cocoa;
+	#elif defined (_WIN32)
+	return RF::window_API::Win32;
+	#endif
+}
 
 int main()
 {
-	RF::delegate_info delegate_info = {
+	RF::delegate_info delegate_info
+	{
 		.name = "RedFox Delegate",
-		.api = RF::window_API::Cocoa
+		.api = choose_api()
 	};
 
 	RF::delegate delegate = RF::delegate(delegate_info);

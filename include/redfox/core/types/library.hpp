@@ -9,7 +9,7 @@
 #include <dlfcn.h>
 #endif
 
-#include "redfox/core/utils/string_utilities.hpp" // RF::format_view
+#include "RedFox/core/utils/string_utilities.hpp" // RF::format_view
 
 namespace RF
 {

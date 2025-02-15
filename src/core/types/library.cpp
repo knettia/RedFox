@@ -1,5 +1,5 @@
-#include "redfox/core/types/library.hpp" // header
-#include "redfox/core/utils/ignoramus.hpp" // RF::ignoramus::logf
+#include "RedFox/core/types/library.hpp" // header
+#include "RedFox/core/utils/ignoramus.hpp" // RF::ignoramus::logf
 
 // library manager
 RF::library_m& RF::library_m::self()

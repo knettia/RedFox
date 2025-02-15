@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cmath>
-#include "redfox/core/utils/template_utilities.hpp" // RF_arithmetic_template
+#include "RedFox/core/utils/template_utilities.hpp" // RF_arithmetic_template
 
 namespace RF
 {

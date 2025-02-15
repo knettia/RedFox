@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-#include "redfox/core/utils/string_utilities.hpp" // RF::format_view
+#include "RedFox/core/utils/string_utilities.hpp" // RF::format_view
 #include <iostream> // std::cout
 
 namespace RF
@@ -18,7 +18,6 @@ namespace RF
 	class ignoramus
 	{
 	public:
-
 		// log
 		template <typename ...Args>
 		static inline void logf(RF::ignoramus_t type, std::string_view fmt, Args &&...args)
@@ -36,7 +35,7 @@ namespace RF
 		}
 	private:
 		static constexpr std::string_view reset_hue = "\033[0m";
-		static std::string type_to_hue(RF::ignoramus_t t);
+		static std::string type_to_hue(RF::ignoramus_t t); // ignoramus.cpp
 		static std::string type_to_str(RF::ignoramus_t t); // ignoramus.cpp
 	};
 } // namespace RF
