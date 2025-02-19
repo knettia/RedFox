@@ -10,8 +10,3 @@
 #include "RedFox/core/types/pool.hpp"        // RF::pool<T>
 
 #include "RedFox/core/types/library.hpp"     // RF::library abstract layer for Unix dlopen and Windows LoadLibrary
-
-// INTERFACE:
-#include "RedFox/core/interface/delegate.hpp" // RF::delegate
-#include "RedFox/core/interface/monitor.hpp"  // RF::MonitorData
-#include "RedFox/core/interface/window.hpp"   // RF::window
