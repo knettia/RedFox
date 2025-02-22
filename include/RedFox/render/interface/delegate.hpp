@@ -1,15 +1,16 @@
 // delegate.hpp
 #pragma once
 
-#include "RedFox/render/interface/types/framework.hpp" // RF::framwork_t
 #include "RedFox/render/interface/window.hpp"
 
-#include <vector>
-#include <memory>
 #include <string>
-
+#include <functional>
+ 
 namespace RF
 {
+	enum class framework_t;
+	enum class virtual_key_t;
+
 	struct delegate_info
 	{
 		std::string name;
@@ -19,14 +20,31 @@ namespace RF
 	class delegate
 	{
 	private:
+		inline static bool created_;
+	protected:
 		RF::delegate_info info_;
-		std::vector<std::shared_ptr<RF::window>> windows_;
+		std::function<void()> terminate_callback_;
 	public:
-		delegate(RF::delegate_info info);
-		~delegate();
+		// copy/move instructions:
+		delegate(const delegate &) = default;
+		delegate(delegate &&) = delete;
+		delegate &operator=(delegate &&) = delete;
 
-		std::shared_ptr<RF::window> create_window(RF::window_info);
+		// constructor/destructor instructions:
+		virtual ~delegate();
+                delegate(RF::delegate_info info);
+
+		// static polymorphic create:
+		static RF::delegate *create(RF::delegate_info info);
+
+		// callbacks: 
+		inline void set_terminate_callback(std::function<void()> callback)
+		{ this->terminate_callback_ = callback; }
+
+		// platform specifics:
+		virtual void terminate() = 0;
+		virtual void poll_events() = 0;
+		virtual char32_t to_keysym(RF::virtual_key_t key) = 0;
+		virtual RF::window *create_window(RF::window_info) = 0;
 	};
-
-	std::unique_ptr<RF::delegate> create_delegate(RF::delegate_info info);
 } // namespace RF

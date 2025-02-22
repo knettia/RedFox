@@ -6,6 +6,7 @@ namespace RF
 {
 	enum class graphics_t
 	{
+		None,
 		Vulkan,
 		Metal,
 		DirectX
@@ -15,6 +16,9 @@ namespace RF
 	{
 		switch (t)
 		{
+			case RF::graphics_t::None:
+			{ return std::string("None"); }
+
 			case RF::graphics_t::Vulkan:
 			{ return std::string("Vulkan"); }
 			

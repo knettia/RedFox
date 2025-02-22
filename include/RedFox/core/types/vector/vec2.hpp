@@ -10,58 +10,62 @@ namespace RF
 		A x;
 		A y;
 
-		constexpr vec() : x(A()), y(A()) { }
-		constexpr vec(A x, A y) : x(x), y(y) { }
+		constexpr vec<2, A>() : x(A()), y(A()) { }
+		constexpr vec<2, A>(A x, A y) : x(x), y(y) { }
 
-		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec(T x, T y)
+		template<typename T_x, typename T_y, RF_arithmetic_template(T_x), RF_arithmetic_template(T_y)>
+		constexpr vec<2, A>(T_x x, T_y y)
 		{
 			this->x = static_cast<A>(x);
         		this->y = static_cast<A>(y);
 		}
 
-		constexpr vec operator+(const vec &v) const
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator+(const vec<2, T> &v) const
 		{
-			return vec(x + v.x, y + v.y);
+			return vec<2, A>(x + v.x, y + v.y);
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec operator+(const T &a) const
+		constexpr vec<2, A> operator+(const T &a) const
 		{
-			return vec(x + a, y + a);
+			return vec<2, A>(x + a, y + a);
 		}
 		
-		constexpr vec operator-(const vec &v) const
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator-(const vec<2, T> &v) const
 		{
-			return vec(x - v.x, y - v.y);
+			return vec<2, A>(x - v.x, y - v.y);
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec operator-(const T &a) const
+		constexpr vec<2, A> operator-(const T &a) const
 		{
-			return vec(x - a, y - a);
-		}
-
-		constexpr vec operator*(const vec &v) const
-		{
-			return vec(x * v.x, y * v.y);
+			return vec<2, A>(x - a, y - a);
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec operator*(const T s) const
+		constexpr vec<2, A> operator*(const vec<2, T> &v) const
 		{
-			return vec(x * s, y * s);
-		}
-
-		constexpr vec operator/(const vec &v) const
-		{
-			return vec(x / v.x, y / v.y);
+			return vec<2, A>(x * v.x, y * v.y);
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec operator/(const T s) const
+		constexpr vec<2, A> operator*(const T s) const
 		{
-			return vec(x / s, y / s);
+			return vec<2, A>(x * s, y * s);
+		}
+		
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator/(const vec<2, T> &v) const
+		{
+			return vec<2, A>(x / v.x, y / v.y);
+		}
+
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator/(const T s) const
+		{
+			return vec<2, A>(x / s, y / s);
 		}
 		
 		// engine needs c++20 to compile anyway
@@ -71,44 +75,47 @@ namespace RF
 		}
 		
 		// engine needs c++20 to compile anyway
-		constexpr vec unit() const
+		constexpr vec<2, A> unit() const
 		{
 			float l = length();
 			return *this / l;
 		}
 
+		template<typename D, typename T, RF_arithmetic_template(D), RF_arithmetic_template(T)>
+		constexpr D dot(const vec<2, T> &v) const
+		{
+			return static_cast<D>(x) * v.x + static_cast<D>(y) * v.y;
+		}
+
+		constexpr vec<2, A> perp() const
+		{
+			return vec<2, A>(-y, x);
+		}
+
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr T dot(const vec &v) const
+		constexpr vec<2, A> hadamard(const vec<2, T> &v) const
 		{
-			return static_cast<T>(x) * v.x + static_cast<T>(y) * v.y;
+			return vec<2, A>(x * v.x, y * v.y);
 		}
 
-		constexpr vec perp() const
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> project(const vec<2, T> &b) const
 		{
-			return vec(-y, x);
-		}
-
-		constexpr vec hadamard(const vec &v) const
-		{
-			return vec(x * v.x, y * v.y);
-		}
-
-		constexpr vec project(const vec &b) const
-		{
-			A b_len_sq = b.dot(b);
-			if (b_len_sq == 0) return vec(0, 0);
+			A b_len_sq = b.template dot<A>(b);
+			if (b_len_sq == 0) return vec<2, A>(0, 0);
 			A scale = this->dot<A>(b) / b_len_sq;
-			return b * scale;
+			return vec<2, A>(b.x, b.y) * scale;
 		}
 
-		constexpr vec reject(const vec &b) const
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> reject(const vec<2, T> &b) const
 		{
 			return *this - this->project(b);
 		}
 	};
 
-	using fvec2 =  vec<2, float>;
-	using ivec2 =  vec<2, int>;
+	using fvec2  = vec<2, float>;
+	using ivec2  = vec<2, int>;
+	using dvec2  = vec<2, double>;
 	using uivec2 = vec<2, unsigned int>;
-	using dvec2 =  vec<2, double>;
 }

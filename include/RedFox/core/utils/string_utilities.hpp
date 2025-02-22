@@ -4,6 +4,8 @@
 #include <sstream> // std::ostringstream
 #include <string>
 #include <string_view>
+#include <locale>
+#include <codecvt>
 // #include <charconv> // std::from_chars
 
 #include <array>
@@ -32,6 +34,16 @@ namespace RF
 		}
 
 		return true;
+	}
+
+	inline std::string to_utf8(char32_t ch)
+	{
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+		std::u32string utf32_str(1, ch);
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+		#pragma clang diagnostic pop
+		return converter.to_bytes(utf32_str);
 	}
 
 	template <typename ...Args>

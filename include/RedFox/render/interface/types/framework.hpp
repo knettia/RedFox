@@ -7,6 +7,7 @@ namespace RF
 {
 	enum class framework_t
 	{
+		None,
 		X11,
 		Wayland,
 		Cocoa,
@@ -30,6 +31,9 @@ namespace RF
 	{
 		switch (t)
 		{
+			case RF::framework_t::None:
+			{ return std::string("None"); }
+
 			case RF::framework_t::X11:
 			{ return std::string("X11"); }
 			
