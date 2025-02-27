@@ -7,6 +7,8 @@ int main()
 	auto lib = RF::library_m::self().load_library("bin/libsquare.so");
 	#elif defined (__APPLE__)
 	auto lib = RF::library_m::self().load_library("bin/libsquare.dylib");
+	#elif defined (_WIN32)
+	auto lib = RF::library_m::self().load_library("bin\\Debug\\square.dll");
 	#endif
 
 	auto func = lib->get_function<int(int)>("square");

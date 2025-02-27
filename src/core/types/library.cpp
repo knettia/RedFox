@@ -34,10 +34,22 @@ void RF::library_m::unload_library(const std::string_view libname)
 
 // lib
 RF::library_m::lib::lib(const std::string_view libname)
-{ }
+{
+	#if defined (__linux__) || defined (__APPLE__)
+	handle_ = dlopen(libname.data(), RTLD_LAZY);
+	#elif defined (_WIN32)
+	handle_ = LoadLibrary(libname.data());
+	#endif
+}
 
 RF::library_m::lib::~lib()
-{ }
+{
+	#if defined (__linux__) || defined (__APPLE__)
+	if (handle_) dlclose(handle_);
+	#elif defined (_WIN32)
+	if (handle_) FreeLibrary(static_cast<HMODULE>(handle_));
+	#endif
+}
 
 bool RF::library_m::lib::is_valid() const
 { return this->handle_ != nullptr; }
