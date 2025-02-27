@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.25.1)
 
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+message(FATAL_ERROR "RedFox requires a 64-bit architecture")
+endif()
+
 set(PROJECT_NAME "RedFox Engine")
 project(${PROJECT_NAME} LANGUAGES C CXX OBJCXX)
 
