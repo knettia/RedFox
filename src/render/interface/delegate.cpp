@@ -2,7 +2,11 @@
 
 #if defined (__APPLE__)
 #include "RedFox/render/interface/delegate/cocoa_delegate.hpp"
+#elif defined (_WIN32)
+#include "RedFox/render/interface/delegate/win32_delegate.hpp"
 #endif
+
+#include <stdexcept>
 
 RF::delegate::delegate(RF::delegate_info info) : info_(info)
 {
@@ -31,7 +35,8 @@ RF::delegate *RF::delegate::create(RF::delegate_info info)
 		case RF::framework_t::Cocoa:
 		{ return new RF::cocoa_delegate(info); }
 		#elif defined (_WIN32)
-		// TODO: implement RF::win32_delegate
+		case RF::framework_t::Win32:
+		{ return new RF::win32_delegate(info); }
 		#endif
 
 		default:

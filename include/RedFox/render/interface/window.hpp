@@ -41,7 +41,20 @@ namespace RF
 		Focused
 	};
 
-	std::string to_string(RF::window_state_t t);
+	inline std::string to_string(RF::window_state_t t)
+	{
+		switch (t)
+		{
+			case (RF::window_state_t::Hidden):
+			{ return std::string("Hidden"); }
+			
+			case (RF::window_state_t::Visible):
+			{ return std::string("Visible"); }
+
+			case (RF::window_state_t::Focused):
+			{ return std::string("Focused"); }
+		}
+	};
 
 	class window
 	{

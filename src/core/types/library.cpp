@@ -34,13 +34,10 @@ void RF::library_m::unload_library(const std::string_view libname)
 
 // lib
 RF::library_m::lib::lib(const std::string_view libname)
-{ this->handle_ = dlopen(libname.data(), RTLD_LAZY); }
+{ }
 
 RF::library_m::lib::~lib()
-{
-	if (this->handle_)
-	{ dlclose(this->handle_); }
-}
+{ }
 
 bool RF::library_m::lib::is_valid() const
 { return this->handle_ != nullptr; }

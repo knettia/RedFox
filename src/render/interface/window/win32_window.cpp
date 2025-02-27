@@ -1,0 +1,379 @@
+#include "RedFox/render/interface/window/win32_window.hpp" // header
+#include <stdexcept>
+#include <windows.h>
+
+#include "RedFox/render/interface/types/virtual_key.hpp"
+
+// internal
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    RF::win32_window* window = reinterpret_cast<RF::win32_window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+    switch (uMsg)
+    {
+        case WM_CLOSE:
+	{
+		if (window)
+		{
+		    window->win32_call_close_callback();
+		    return 0;
+		}
+		break;
+	}
+
+	case WM_KEYDOWN:
+        {
+		if (window)
+		{
+			std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+			if (keyopt.has_value())
+			{ window->handle_virtual_key_down(keyopt.value()); }
+		}
+		break;
+        }
+
+        case WM_KEYUP:
+        {
+		if (window)
+		{
+			std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+			if (keyopt.has_value())
+			{ window->handle_virtual_key_up(keyopt.value()); }
+		}
+		break;
+        }
+
+	case WM_LBUTTONDOWN:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_down(RF::mouse_key_t::LMB);
+            }
+            break;
+        }
+
+        case WM_LBUTTONUP:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_up(RF::mouse_key_t::LMB);
+            }
+            break;
+        }
+
+        case WM_RBUTTONDOWN:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_down(RF::mouse_key_t::RMB);
+            }
+            break;
+        }
+
+        case WM_RBUTTONUP:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_up(RF::mouse_key_t::RMB);
+            }
+            break;
+        }
+
+        case WM_MBUTTONDOWN:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_down(RF::mouse_key_t::MMB);
+            }
+            break;
+        }
+
+        case WM_MBUTTONUP:
+        {
+            if (window)
+            {
+                window->handle_mouse_key_up(RF::mouse_key_t::MMB);
+            }
+            break;
+        }
+
+        case WM_XBUTTONDOWN:
+        {
+            if (window)
+            {
+                UINT button = GET_XBUTTON_WPARAM(wParam);
+                if (button == XBUTTON1)
+                {
+                    window->handle_mouse_key_down(RF::mouse_key_t::X1);
+                }
+                else if (button == XBUTTON2)
+                {
+                    window->handle_mouse_key_down(RF::mouse_key_t::X2);
+                }
+            }
+            break;
+        }
+
+        case WM_XBUTTONUP:
+        {
+		if (window)
+		{
+			UINT button = GET_XBUTTON_WPARAM(wParam);
+			if (button == XBUTTON1)
+			{
+			window->handle_mouse_key_up(RF::mouse_key_t::X1);
+			}
+			else if (button == XBUTTON2)
+			{
+			window->handle_mouse_key_up(RF::mouse_key_t::X2);
+			}
+		}
+		break;
+        }
+
+	case WM_ACTIVATE:
+	{
+		if (window)
+		{
+			if (LOWORD(wParam) == WA_ACTIVE)
+			{
+				window->update_window_state(RF::window_state_t::Focused);
+			}
+			else if (window->get_state() != RF::window_state_t::Hidden)
+			{
+				window->update_window_state(RF::window_state_t::Visible);
+			}
+		}
+		break;
+	}
+
+	case WM_SIZE:
+	{
+		if (window)
+		{
+			if (wParam == SIZE_MINIMIZED)
+			{
+				window->update_window_state(RF::window_state_t::Hidden);
+			}
+			else if (wParam == SIZE_RESTORED)
+			{
+				window->update_window_state(RF::window_state_t::Visible);
+			}
+		}
+		break;
+	}
+
+	default: { break; }
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+void RF::win32_window::win32_call_close_callback()
+{
+	if (this->close_callback_)
+	{ this->close_callback_(this); }
+}
+
+void RF::win32_window::update_window_state(RF::window_state_t new_state)
+{
+	if (this->state_ != new_state)
+	{
+		this->state_ = new_state;
+		if (this->state_changed_callback_)
+		{ this->state_changed_callback_(this, new_state); }
+	}
+}
+
+
+// RF::win32_window implementation:
+RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
+{
+	// create window 
+	this->handle_window_ = CreateWindowEx(
+		0,
+		"RedFox Win32 Delegate",
+		this->info_.title.c_str(),
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+
+		0, 0, 0, 0,
+
+		nullptr,
+		nullptr,
+		GetModuleHandle(nullptr),
+		nullptr
+	);
+
+	if (!this->handle_window_)
+	{ throw std::runtime_error("failed to create win32 window"); }
+
+	// Set the window procedure
+	SetWindowLongPtr(this->handle_window_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	SetWindowLongPtr(this->handle_window_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WindowProc));
+
+	// align window
+	int x = (GetSystemMetrics(SM_CXSCREEN) - this->info_.size.x) / 2;
+	int y = (GetSystemMetrics(SM_CYSCREEN) - this->info_.size.y) / 2;
+	SetWindowPos(this->handle_window_, nullptr, x, y, this->info_.size.x, this->info_.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
+
+	// show window
+	ShowWindow(this->handle_window_, SW_SHOW);
+}
+
+RF::win32_window::~win32_window()
+{ this->close(); }
+
+void RF::win32_window::close()
+{
+	DestroyWindow(this->handle_window_);
+}
+
+// vulkan
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.hpp>
+vk::ResultValue<vk::SurfaceKHR> RF::win32_window::create_surface(vk::Instance instance, const vk::AllocationCallbacks *allocator)
+{
+	HINSTANCE handle_instance { GetModuleHandle(nullptr) };
+	if (!handle_instance)
+	{ return vk::ResultValue<vk::SurfaceKHR>(vk::Result::eErrorInitializationFailed, nullptr); }
+
+	// C type
+	VkWin32SurfaceCreateInfoKHR sci {};
+	sci.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	sci.hinstance = handle_instance;
+	sci.hwnd = this->handle_window_;
+
+	auto vk_create_win32_surface_khr = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(instance.getProcAddr("vkCreateWin32SurfaceKHR"));
+
+	if (!vk_create_win32_surface_khr)
+	{ return vk::ResultValue<vk::SurfaceKHR>(vk::Result::eErrorExtensionNotPresent, nullptr); }
+
+	VkSurfaceKHR raw_surface;
+	vk::Result result = static_cast<vk::Result>(vk_create_win32_surface_khr(
+		static_cast<VkInstance>(instance), 
+		&sci, 
+		reinterpret_cast<const VkAllocationCallbacks*>(allocator), 
+		&raw_surface
+	));
+
+	if (result != vk::Result::eSuccess)
+	{ return vk::ResultValue<vk::SurfaceKHR>(result, nullptr); }
+
+	return vk::ResultValue<vk::SurfaceKHR>(result, static_cast<vk::SurfaceKHR>(raw_surface));
+}
+
+void RF::win32_window::handle_virtual_key_down(RF::virtual_key_t key)
+{
+	auto call_key_event_callback = [this](RF::virtual_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->virtual_key_event_callback_)
+		{
+			this->virtual_key_event_callback_(this, key, state);
+		}
+	};
+
+	RF::key_state_t &state = this->virtual_key_states_.at(key);
+
+	if (state == RF::key_state_t::Inactive || state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Triggered;
+		call_key_event_callback(key, state);
+	}
+	if (state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Ongoing;
+		call_key_event_callback(key, state);
+	}
+	else
+	{ call_key_event_callback(key, state); }
+}
+
+void RF::win32_window::handle_virtual_key_up(RF::virtual_key_t key)
+{
+	auto call_key_event_callback = [this](RF::virtual_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->virtual_key_event_callback_)
+		{
+			this->virtual_key_event_callback_(this, key, state);
+		}
+	};
+
+	RF::key_state_t &state = this->virtual_key_states_.at(key);
+
+	if (state == RF::key_state_t::Ongoing || state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Suppressed;
+		call_key_event_callback(key, state);
+		this->handle_virtual_key_up(key);
+	}
+	else if (state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Inactive;
+		call_key_event_callback(key, state);
+	}
+}
+
+void RF::win32_window::handle_mouse_key_down(RF::mouse_key_t key)
+{
+	auto call_mouse_event_callback = [this](RF::mouse_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->mouse_key_event_callback_)
+		{ this->mouse_key_event_callback_(this, key, state); }
+	};
+
+	RF::key_state_t &state = this->mouse_key_states_.at(key);
+
+	if (state == RF::key_state_t::Inactive || state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Triggered;
+		call_mouse_event_callback(key, state);
+	}
+	if (state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Ongoing;
+		call_mouse_event_callback(key, state);
+	}
+	else
+	{ call_mouse_event_callback(key, state); }
+}
+
+void RF::win32_window::handle_mouse_key_up(RF::mouse_key_t key)
+{
+	auto call_mouse_event_callback = [this](RF::mouse_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->mouse_key_event_callback_)
+		{ this->mouse_key_event_callback_(this, key, state); }
+	};
+
+	RF::key_state_t &state = this->mouse_key_states_.at(key);
+
+	if (state == RF::key_state_t::Ongoing || state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Suppressed;
+		call_mouse_event_callback(key, state);
+		this->handle_mouse_key_up(key);
+	}
+	else if (state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Inactive;
+		call_mouse_event_callback(key, state);
+	}
+}
+
+void RF::win32_window::focus()
+{
+	SetForegroundWindow(this->handle_window_);
+}
+
+void RF::win32_window::minimise()
+{
+	ShowWindow(this->handle_window_, SW_MINIMIZE);
+}
+
+void RF::win32_window::set_size(RF::uivec2 size)
+{
+	RECT rect;
+	GetWindowRect(this->handle_window_, &rect);
+	SetWindowPos(this->handle_window_, NULL, rect.left, rect.top, size.x, size.y, SWP_NOZORDER | SWP_NOACTIVATE);	
+	this->info_.size = size;
+}
