@@ -1,6 +1,7 @@
 .DS_Store
 **/.DS_Store
-
+include/vulkan
+include/vk_video
 .archive
 .cache
 build
