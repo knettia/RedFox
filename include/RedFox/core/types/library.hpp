@@ -42,4 +42,4 @@ namespace RF
 	};
 } // namespace RF
 
-#include "library.inl"
+#include "library.ipp"
