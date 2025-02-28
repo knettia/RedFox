@@ -21,4 +21,4 @@ namespace RF
 	std::string format_view(std::string_view fmt, Args &&...args);
 } // namespace RF
 
-#include "string_utilities.ipp" // Include the inline implementation
+#include "string_utilities.ipp"
