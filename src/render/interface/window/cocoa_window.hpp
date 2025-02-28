@@ -14,7 +14,7 @@
 class NSWindow;
 class cocoa_window_m;
 class cocoa_view_m;
-class cocoa_respondr_m;
+class cocoa_responder_m;
 class CAMetalLayer;
 #endif
 

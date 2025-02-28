@@ -1,4 +1,4 @@
-#import "RedFox/render/interface/window/cocoa_window.hpp" // header
+#import "./cocoa_window.hpp" // header
 #import "RedFox/render/interface/types/virtual_key.hpp"
 #import "RedFox/core/utils/ignoramus.hpp" // RF::ignoramus::logf
 

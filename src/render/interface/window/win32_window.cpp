@@ -1,4 +1,4 @@
-#include "RedFox/render/interface/window/win32_window.hpp" // header
+#include "./win32_window.hpp" // header
 #include <stdexcept>
 #include <windows.h>
 

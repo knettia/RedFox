@@ -1,6 +1,5 @@
-#include "RedFox/render/interface/delegate/win32_delegate.hpp"
+#include "./win32_delegate.hpp"
 #include "RedFox/render/interface/types/virtual_key.hpp"
-#include <minwindef.h>
 
 // RF::win32_delegate implementation:
 RF::win32_delegate::~win32_delegate()
@@ -62,6 +61,6 @@ char32_t RF::win32_delegate::to_keysym(RF::virtual_key_t key)
 	}
 }
 
-#include "RedFox/render/interface/window/win32_window.hpp"
+#include "../window/win32_window.hpp"
 RF::window *RF::win32_delegate::create_window(RF::window_info info)
 { return new RF::win32_window(info); }

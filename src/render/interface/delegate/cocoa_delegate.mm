@@ -1,4 +1,4 @@
-#import "RedFox/render/interface/delegate/cocoa_delegate.hpp"
+#import "./cocoa_delegate.hpp"
 
 // internal cocoa manager
 @implementation cocoa_delegate_m
@@ -170,7 +170,7 @@ char32_t RF::cocoa_delegate::to_keysym(RF::virtual_key_t key)
 	return static_cast<char32_t>(str);
 }
 
-#import "RedFox/render/interface/window/cocoa_window.hpp"
+#import "../window/cocoa_window.hpp"
 
 RF::window *RF::cocoa_delegate::create_window(RF::window_info info)
 {

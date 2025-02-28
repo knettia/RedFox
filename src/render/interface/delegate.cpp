@@ -1,9 +1,9 @@
 #include "RedFox/render/interface/delegate.hpp" // header
 
 #if defined (__APPLE__)
-#include "RedFox/render/interface/delegate/cocoa_delegate.hpp"
+#include "./delegate/cocoa_delegate.hpp"
 #elif defined (_WIN32)
-#include "RedFox/render/interface/delegate/win32_delegate.hpp"
+#include "./delegate/win32_delegate.hpp"
 #endif
 
 #include <stdexcept>
