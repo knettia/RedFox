@@ -1,11 +1,13 @@
 {
 	"clangd.arguments":
 	[
-		"--enable-config"
+		"--enable-config",
+		"-header-insertion=never"
 	],
 	
 	"clangd.fallbackFlags":
 	[
-		"-I${workspaceFolder}/include"
+		"-I${workspaceFolder}/include",
+		"-std=c++20"
 	]
 }
