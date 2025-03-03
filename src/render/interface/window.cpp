@@ -22,6 +22,7 @@ RF::window_info RF::window::get_info() const
 RF::window_state_t RF::window::get_state() const
 { return this->state_; }
 
+#include <stdexcept>
 RF::key_state_t RF::window::get_key_state(RF::virtual_key_t key) const
 {
 	auto it = this->virtual_key_states_.find(key);

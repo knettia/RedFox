@@ -33,32 +33,25 @@ void RF::win32_delegate::poll_events()
 
 char32_t RF::win32_delegate::to_keysym(RF::virtual_key_t key)
 {
-	std::optional<WPARAM> codeopt = RF::win32_key_map[key];
+	std::optional<UINT> codeopt = RF::win32_key_map[key];
 	if (!codeopt.has_value())
 	{ return char32_t { U'\uFFFD' }; }
 
-	WPARAM code = codeopt.value();
+	UINT code = codeopt.value();
+	UINT scan_code = MapVirtualKey(code, MAPVK_VK_TO_VSC);
 
-	UINT scanCode = MapVirtualKey(code, MAPVK_VK_TO_VSC);
+	WCHAR unicode_char[2] {0};
 
-	WCHAR unicodeChar[2] {0};
+	BYTE keyboard_state[256];
+	if (!GetKeyboardState(keyboard_state))
+	{ return U'\uFFFD'; }
 
-	BYTE keyboardState[256];
-	if (!GetKeyboardState(keyboardState))
-	{
-		return U'\uFFFD';
-	}
-
-	int result = ToUnicode(code, scanCode, keyboardState, unicodeChar, 2, 0);
+	int result = ToUnicode(code, scan_code, keyboard_state, unicode_char, 2, 0);
 
 	if (result == 1)
-	{
-		return static_cast<char32_t>(unicodeChar[0]);
-	}
+	{ return static_cast<char32_t>(unicode_char[0]); }
 	else
-	{
-		return U'\uFFFD';
-	}
+	{ return U'\uFFFD'; }
 }
 
 #include "../window/win32_window.hpp"

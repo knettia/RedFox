@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <initializer_list>
-#include <stdexcept>
+#include <optional>
 
 namespace RF
 {

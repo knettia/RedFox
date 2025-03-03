@@ -13,7 +13,7 @@ struct
 		RF::delegate_info delegate_info
 		{
 			.name = "RedFox Delegate",
-			.framework = RF::framework_t::Cocoa
+			.framework = RF::framework_t::Win32
 		};
 
 		this->delegate = RF::delegate::create(delegate_info);
@@ -72,11 +72,14 @@ int main()
 	{
 		if (state == RF::key_state_t::Triggered)
 		{
-			RF::ignoramus::logf(
-				RF::ignoramus_t::info, "user triggered key <1> at RF::window <0>",
-				window->get_info().title,
-				RF::to_utf8(game_process.delegate->to_keysym(key))
-			);
+			if (key == RF::virtual_key_t::S)
+			{
+				RF::ignoramus::logf(
+					RF::ignoramus_t::info, "user triggered key <1> at RF::window <0>",
+					window->get_info().title,
+					RF::to_utf8(game_process.delegate->to_keysym(key))
+				);
+			}
 		}
 	});
 

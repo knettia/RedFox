@@ -7,166 +7,170 @@
 // internal
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    RF::win32_window* window = reinterpret_cast<RF::win32_window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	RF::win32_window* window = reinterpret_cast<RF::win32_window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-    switch (uMsg)
-    {
-        case WM_CLOSE:
+	switch (uMsg)
 	{
-		if (window)
+		case WM_CLOSE:
 		{
-		    window->win32_call_close_callback();
-		    return 0;
+			if (window)
+			{
+				window->win32_call_close_callback();
+				return 0;
+			}
+			break;
 		}
-		break;
+
+		case WM_KEYDOWN:
+		{
+			if (window)
+			{
+				UINT scancode = (lParam >> 16) & 0xFF;
+
+				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+				if (keyopt.has_value())
+				{ window->handle_virtual_key_down(keyopt.value()); }
+			}
+			break;
+		}
+
+		case WM_KEYUP:
+		{
+			if (window)
+			{
+				UINT scancode = (lParam >> 16) & 0xFF;
+
+				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+				if (keyopt.has_value())
+				{ window->handle_virtual_key_up(keyopt.value()); }
+			}
+			break;
+		}
+
+		case WM_LBUTTONDOWN:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_down(RF::mouse_key_t::LMB);
+			}
+			break;
+		}
+
+		case WM_LBUTTONUP:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_up(RF::mouse_key_t::LMB);
+			}
+			break;
+		}
+
+		case WM_RBUTTONDOWN:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_down(RF::mouse_key_t::RMB);
+			}
+			break;
+		}
+
+		case WM_RBUTTONUP:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_up(RF::mouse_key_t::RMB);
+			}
+			break;
+		}
+
+		case WM_MBUTTONDOWN:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_down(RF::mouse_key_t::MMB);
+			}
+			break;
+		}
+
+		case WM_MBUTTONUP:
+		{
+			if (window)
+			{
+				window->handle_mouse_key_up(RF::mouse_key_t::MMB);
+			}
+			break;
+		}
+
+		case WM_XBUTTONDOWN:
+		{
+			if (window)
+			{
+				UINT button = GET_XBUTTON_WPARAM(wParam);
+				if (button == XBUTTON1)
+				{
+					window->handle_mouse_key_down(RF::mouse_key_t::X1);
+				}
+				else if (button == XBUTTON2)
+				{
+					window->handle_mouse_key_down(RF::mouse_key_t::X2);
+				}
+			}
+			break;
+		}
+
+		case WM_XBUTTONUP:
+		{
+			if (window)
+			{
+				UINT button = GET_XBUTTON_WPARAM(wParam);
+				if (button == XBUTTON1)
+				{
+				window->handle_mouse_key_up(RF::mouse_key_t::X1);
+				}
+				else if (button == XBUTTON2)
+				{
+				window->handle_mouse_key_up(RF::mouse_key_t::X2);
+				}
+			}
+			break;
+		}
+
+		case WM_ACTIVATE:
+		{
+			if (window)
+			{
+				if (LOWORD(wParam) == WA_ACTIVE)
+				{
+					window->update_window_state(RF::window_state_t::Focused);
+				}
+				else if (window->get_state() != RF::window_state_t::Hidden)
+				{
+					window->update_window_state(RF::window_state_t::Visible);
+				}
+			}
+			break;
+		}
+
+		case WM_SIZE:
+		{
+			if (window)
+			{
+				if (wParam == SIZE_MINIMIZED)
+				{
+					window->update_window_state(RF::window_state_t::Hidden);
+				}
+				else if (wParam == SIZE_RESTORED)
+				{
+					window->update_window_state(RF::window_state_t::Visible);
+				}
+			}
+			break;
+		}
+
+		default: { break; }
 	}
 
-	case WM_KEYDOWN:
-        {
-		if (window)
-		{
-			std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
-			if (keyopt.has_value())
-			{ window->handle_virtual_key_down(keyopt.value()); }
-		}
-		break;
-        }
-
-        case WM_KEYUP:
-        {
-		if (window)
-		{
-			std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
-			if (keyopt.has_value())
-			{ window->handle_virtual_key_up(keyopt.value()); }
-		}
-		break;
-        }
-
-	case WM_LBUTTONDOWN:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_down(RF::mouse_key_t::LMB);
-            }
-            break;
-        }
-
-        case WM_LBUTTONUP:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_up(RF::mouse_key_t::LMB);
-            }
-            break;
-        }
-
-        case WM_RBUTTONDOWN:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_down(RF::mouse_key_t::RMB);
-            }
-            break;
-        }
-
-        case WM_RBUTTONUP:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_up(RF::mouse_key_t::RMB);
-            }
-            break;
-        }
-
-        case WM_MBUTTONDOWN:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_down(RF::mouse_key_t::MMB);
-            }
-            break;
-        }
-
-        case WM_MBUTTONUP:
-        {
-            if (window)
-            {
-                window->handle_mouse_key_up(RF::mouse_key_t::MMB);
-            }
-            break;
-        }
-
-        case WM_XBUTTONDOWN:
-        {
-            if (window)
-            {
-                UINT button = GET_XBUTTON_WPARAM(wParam);
-                if (button == XBUTTON1)
-                {
-                    window->handle_mouse_key_down(RF::mouse_key_t::X1);
-                }
-                else if (button == XBUTTON2)
-                {
-                    window->handle_mouse_key_down(RF::mouse_key_t::X2);
-                }
-            }
-            break;
-        }
-
-        case WM_XBUTTONUP:
-        {
-		if (window)
-		{
-			UINT button = GET_XBUTTON_WPARAM(wParam);
-			if (button == XBUTTON1)
-			{
-			window->handle_mouse_key_up(RF::mouse_key_t::X1);
-			}
-			else if (button == XBUTTON2)
-			{
-			window->handle_mouse_key_up(RF::mouse_key_t::X2);
-			}
-		}
-		break;
-        }
-
-	case WM_ACTIVATE:
-	{
-		if (window)
-		{
-			if (LOWORD(wParam) == WA_ACTIVE)
-			{
-				window->update_window_state(RF::window_state_t::Focused);
-			}
-			else if (window->get_state() != RF::window_state_t::Hidden)
-			{
-				window->update_window_state(RF::window_state_t::Visible);
-			}
-		}
-		break;
-	}
-
-	case WM_SIZE:
-	{
-		if (window)
-		{
-			if (wParam == SIZE_MINIMIZED)
-			{
-				window->update_window_state(RF::window_state_t::Hidden);
-			}
-			else if (wParam == SIZE_RESTORED)
-			{
-				window->update_window_state(RF::window_state_t::Visible);
-			}
-		}
-		break;
-	}
-
-	default: { break; }
-    }
-
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 void RF::win32_window::win32_call_close_callback()
@@ -184,7 +188,6 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 		{ this->state_changed_callback_(this, new_state); }
 	}
 }
-
 
 // RF::win32_window implementation:
 RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
@@ -207,7 +210,6 @@ RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
 	if (!this->handle_window_)
 	{ throw std::runtime_error("failed to create win32 window"); }
 
-	// Set the window procedure
 	SetWindowLongPtr(this->handle_window_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	SetWindowLongPtr(this->handle_window_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WindowProc));
 
@@ -218,6 +220,8 @@ RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
 
 	// show window
 	ShowWindow(this->handle_window_, SW_SHOW);
+	// HACK: to not show loading hourglass, change the cursor itself  back to arrow
+	SetCursor(LoadCursor(nullptr, IDC_ARROW));
 }
 
 RF::win32_window::~win32_window()
