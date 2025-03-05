@@ -18,6 +18,7 @@ namespace RF::net
 	public:
 		connection(RF::net::socket &socket);
 		connection(RF::net::socket &socket, const asio::ip::udp::endpoint endpoint);
+		connection(RF::net::socket &socket, const std::string_view address, const std::uint16_t port);
 		bool operator==(const RF::net::connection &other) const;
 		bool operator!=(const RF::net::connection &other) const;
 

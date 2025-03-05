@@ -15,6 +15,12 @@ RF::net::connection::connection(RF::net::socket &socket, const asio::ip::udp::en
 	endpoint_(endpoint)
 { }
 
+RF::net::connection::connection(RF::net::socket &socket, const std::string_view address, const std::uint16_t port)
+:
+	socket_(&socket),
+	endpoint_(asio::ip::udp::endpoint(asio::ip::address::from_string(address.data()), port))
+{ }
+
 bool RF::net::connection::operator==(const connection &other) const
 {
 	return socket_ == other.socket_ && endpoint_ == other.endpoint_;
