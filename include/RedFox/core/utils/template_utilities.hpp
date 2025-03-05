@@ -30,3 +30,9 @@ namespace RF
 
 #define RF_derived_template(derived_type, base_type) \
 	typename = std::enable_if_t<RF::is_derived_from<derived_type, base_type>::value>
+
+#define RF_enum_template(src_type) \
+	typename = std::enable_if_t<std::is_enum_v<src_type>>
+
+#define RF_underlying_template(underlying_type, base_type) \
+	typename = std::enable_if_t<std::is_same_v<std::underlying_type_t<underlying_type>, base_type>>
