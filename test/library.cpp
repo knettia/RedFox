@@ -1,5 +1,6 @@
 // RedFox
-#include <RedFox/core/base.hpp>
+#include <RF/library.hpp>
+#include <RF/log.hpp>
 
 int main()
 {
@@ -20,11 +21,18 @@ int main()
 		for (const int i : to_square)
 		{
 			int result = func(i);
-			RF::ignoramus::logf(RF::ignoramus_t::info, "Squared <0> to <1>", i, result);
+			RF::logf::info("Squared <0> to <1>", i, result);
 		}
 	}
 
+	
+	#if defined (__linux__)
+	RF::library_m::self().unload_library("bin/libsquare.so");
+	#elif defined (__APPLE__)
 	RF::library_m::self().unload_library("bin/libsquare.dylib");
+	#elif defined (_WIN32)
+	RF::library_m::self().unload_library("bin\\Debug\\square.dll");
+	#endif
 
 	return 0;
 }

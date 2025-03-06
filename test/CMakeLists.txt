@@ -1,4 +1,4 @@
-set(TEST_SOURCES "net/client.cpp" "net/server.cpp")
+set(TEST_SOURCES "crash.cpp")
 
 foreach(TEST_FILE ${TEST_SOURCES})
 	get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)

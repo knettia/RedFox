@@ -1,5 +1,6 @@
 // RedFox
-#include <RedFox/core/base.hpp>
+#include <RF/mass.hpp>
+#include <RF/log.hpp>
 
 int main()
 {
@@ -10,9 +11,8 @@ int main()
 
 	for (const int i : m)
 	{
-		RF::ignoramus::logf(RF::ignoramus_t::info, "Index: <0>", i);
+		RF::logf::info("Index: <0>", i);
 	}
-
 
 	return 0;
 }
