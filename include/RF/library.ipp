@@ -1,4 +1,4 @@
-#include "RedFox/core/utils/string_utilities.hpp" // RF::format_view
+#include "RF/string.hpp" // RF::format_view
 
 template<typename T>
 inline std::function<T> RF::library_m::lib::get_function(const std::string_view symbol)
