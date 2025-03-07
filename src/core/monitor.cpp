@@ -99,12 +99,12 @@ void RF::monitor_m::handle_crash_(int signal)
 	#elif
 	platform = "Windows";
 	#endif
-
+	
 	log_stream << RF::format_view("Platform: <0>", platform) << '\n';
 	
 	RF::sys::utc_time_t time = RF::sys::get_current_time();
 	log_stream << RF::format_view("Time: <0>-<1>-<2>T<3>:<4>:<5>.<6>Z", time.year, time.month, time.day, time.hour, time.minute, time.second, time.millisecond) << '\n';
-
+	
 	log_stream << '\n';
 	
 	RF::sys::cpu_info_t cpu_info = RF::sys::get_cpu_info();
@@ -116,9 +116,13 @@ void RF::monitor_m::handle_crash_(int signal)
 	log_stream << RF::format_view("      | Architecture: <0>", cpu_info.architecture) << '\n';
 	
 	log_stream << '\n';
-
-	log_stream << RF::format_view("Virtual Memory Usage: <0> GiB", RF::double_to_string(process_memory.virtual_size.count(), 2)) << '\n';
-	log_stream << RF::format_view("Physical Memory Usage: <0> MiB", RF::double_to_string(process_memory.physical_size.count(), 2)) << '\n';
+	
+	#if defined (__APPLE__)
+	log_stream << RF::format_view("Virtual Memory Usage: <0> GiB", RF::double_to_string(RF::memory_cast<gibibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
+	#else
+	log_stream << RF::format_view("Virtual Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<mebibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
+	#endif
+	log_stream << RF::format_view("Physical Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<mebibyte_scale>(process_memory.physical_size).count(), 2)) << '\n';
 
 	log_stream << '\n';
 	
