@@ -9,6 +9,7 @@
 #endif
 
 #include "RF/system.hpp"
+#include "RF/string.hpp"
 
 RF::sys::memory_data_t RF::sys::get_process_memory()
 {
@@ -170,6 +171,7 @@ std::string RF::sys::get_process_name()
 
 #include <chrono>
 #include <ctime>
+#include <unordered_map>
 
 RF::sys::utc_time_t RF::sys::get_current_time()
 {
@@ -201,8 +203,7 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 {
 	RF::sys::cpu_info_t info;
 #if defined (__linux__)
-	// read: https://www.geeksforgeeks.org/check-linux-cpu-information/?utm_source=chatgpt.com
-	// Not tested:
+	// read: https://www.geeksforgeeks.org/check-linux-cpu-information
 	std::ifstream cpuinfo_file("/proc/cpuinfo");
 	std::string line;
 	std::unordered_map<std::string, std::string> cpuinfo_map;
@@ -215,13 +216,13 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 		{
 			std::string value;
 			if (std::getline(iss, value))
-			{ cpuinfo_map[key] = value; }
+			{ cpuinfo_map[RF::trim(key)] = RF::trim(value); }
 		}
 	}
 
-	info.model_name = cpuinfo_map["model name"];
+	info.model = cpuinfo_map["model name"];
 	info.clock_speed = std::stod(cpuinfo_map["cpu MHz"]);
-	info.architecture = cpuinfo_map["architecture"];
+	info.architecture = cpuinfo_map["cpu family"];
 	info.logical_cores = std::stoi(cpuinfo_map["siblings"]);
 	info.physical_cores = std::stoi(cpuinfo_map["cpu cores"]);
 #elif defined (__APPLE__)
@@ -250,7 +251,7 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 	sysctlbyname("hw.machine", &buffer, &buffer_size, nullptr, 0);
 	info.architecture = buffer;
 #elif defined (_WIN32)
-	// read: https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformation?utm_source=chatgpt.com
+	// read: https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformation
 	// Not tested:
 	SYSTEM_INFO sys_info;
 	GetSystemInfo(&sys_info);
@@ -294,7 +295,7 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 		char buffer[128];
 		DWORD buffer_size = sizeof(buffer);
 		RegQueryValueEx(hKeyProcessor, "ProcessorNameString", nullptr, nullptr, (LPBYTE)buffer, &buffer_size);
-		info.model_name = buffer;
+		info.model = buffer;
 
 		DWORD mhz;
 		buffer_size = sizeof(mhz);
