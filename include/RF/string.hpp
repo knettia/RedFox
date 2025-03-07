@@ -15,6 +15,7 @@ namespace RF
 	std::vector<std::string> split_lines(std::string_view input);
 
 	std::string trim(std::string_view str);
+	std::string basename(std::string_view str);
 
 	template <typename T>
 	std::string to_oss_str(T &&value);

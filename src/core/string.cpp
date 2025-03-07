@@ -69,6 +69,25 @@ std::string RF::trim(std::string_view str)
 	return std::string(str.substr(first, (last - first + 1)));
 }
 
+#if defined (__linux__) || defined (__APPLE__)
+#include <libgen.h> // basename
+#endif // __linux__, __APPLE__
+
+std::string RF::basename(std::string_view str)
+{
+#if defined (__linux__) || defined (__APPLE__)
+	return std::string(::basename(str.data()));
+#elif defined (_WIN32)
+	std::string_view::size_type pos = str.find_last_of("\\/");
+	if (pos != std::string_view::npos)
+	{
+		return std::string(str.substr(pos + 1));
+	}
+
+	return std::string(str);
+#endif
+}
+
 std::string RF::format_view(std::string_view fmt, std::vector<std::string> list)
 {
 	std::ostringstream result;
