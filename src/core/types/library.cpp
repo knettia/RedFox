@@ -1,6 +1,7 @@
 #include "RF/library.hpp" // header
 
 // library manager
+std::unordered_map<std::string, std::shared_ptr<RF::library_m::lib>> RF::library_m::libraries_;
 
 std::shared_ptr<RF::library_m::lib> RF::library_m::load_library(const std::string_view libname)
 {
@@ -13,7 +14,7 @@ std::shared_ptr<RF::library_m::lib> RF::library_m::load_library(const std::strin
 	auto lib_ptr = std::make_shared<RF::library_m::lib>(libname);
 
 	if (lib_ptr->is_valid())
-	{RF::library_m::libraries_[libname.data()] = lib_ptr; }
+	{ RF::library_m::libraries_[libname.data()] = lib_ptr; }
 
 	return lib_ptr;
 }
