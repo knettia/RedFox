@@ -5,11 +5,11 @@
 int main()
 {
 	#if defined (__linux__)
-	auto lib = RF::library_m::self().load_library("bin/libsquare.so");
+	auto lib = RF::library_m::load_library("bin/libsquare.so");
 	#elif defined (__APPLE__)
-	auto lib = RF::library_m::self().load_library("bin/libsquare.dylib");
+	auto lib = RF::library_m::load_library("bin/libsquare.dylib");
 	#elif defined (_WIN32)
-	auto lib = RF::library_m::self().load_library("bin\\Debug\\square.dll");
+	auto lib = RF::library_m::load_library("bin\\Debug\\square.dll");
 	#endif
 
 	auto func = lib->get_function<int(int)>("square");
@@ -27,11 +27,11 @@ int main()
 
 	
 	#if defined (__linux__)
-	RF::library_m::self().unload_library("bin/libsquare.so");
+	RF::library_m::unload_library("bin/libsquare.so");
 	#elif defined (__APPLE__)
-	RF::library_m::self().unload_library("bin/libsquare.dylib");
+	RF::library_m::unload_library("bin/libsquare.dylib");
 	#elif defined (_WIN32)
-	RF::library_m::self().unload_library("bin\\Debug\\square.dll");
+	RF::library_m::unload_library("bin\\Debug\\square.dll");
 	#endif
 
 	return 0;

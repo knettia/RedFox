@@ -1,16 +1,11 @@
 #include "RF/library.hpp" // header
 
 // library manager
-RF::library_m &RF::library_m::self()
-{
-	static RF::library_m inst;
-	return inst;
-}
 
 std::shared_ptr<RF::library_m::lib> RF::library_m::load_library(const std::string_view libname)
 {
-	auto it = this->libraries_.find(libname.data());
-	if (it != this->libraries_.end())
+	auto it = RF::library_m::libraries_.find(libname.data());
+	if (it != RF::library_m::libraries_.end())
 	{
 		return it->second;
 	}
@@ -18,16 +13,16 @@ std::shared_ptr<RF::library_m::lib> RF::library_m::load_library(const std::strin
 	auto lib_ptr = std::make_shared<RF::library_m::lib>(libname);
 
 	if (lib_ptr->is_valid())
-	{ this->libraries_[libname.data()] = lib_ptr; }
+	{RF::library_m::libraries_[libname.data()] = lib_ptr; }
 
 	return lib_ptr;
 }
 
 void RF::library_m::unload_library(const std::string_view libname)
 {
-	auto it = this->libraries_.find(libname.data());
-	if (it != this->libraries_.end())
-	{ this->libraries_.erase(it); }
+	auto it = RF::library_m::libraries_.find(libname.data());
+	if (it != RF::library_m::libraries_.end())
+	{ RF::library_m::libraries_.erase(it); }
 }
 
 // lib
@@ -43,9 +38,11 @@ RF::library_m::lib::lib(const std::string_view libname)
 RF::library_m::lib::~lib()
 {
 	#if defined (__linux__) || defined (__APPLE__)
-	if (handle_) dlclose(handle_);
+	if (handle_)
+	{ dlclose(handle_);}
 	#elif defined (_WIN32)
-	if (handle_) FreeLibrary(static_cast<HMODULE>(handle_));
+	if (handle_)
+	{ FreeLibrary(static_cast<HMODULE>(handle_)); }
 	#endif
 }
 

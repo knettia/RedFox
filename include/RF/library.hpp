@@ -31,14 +31,13 @@ namespace RF
 			bool is_valid() const;
 		};
 
-		library_m() = default;
-		~library_m() = default;
-		std::unordered_map<std::string, std::shared_ptr<lib>> libraries_;
+		static std::unordered_map<std::string, std::shared_ptr<lib>> libraries_;
 	public:
-		static library_m &self();
+		library_m() = delete;
+		~library_m() = delete;
 
-		std::shared_ptr<lib> load_library(const std::string_view libname);
-		void unload_library(const std::string_view libname);
+		static std::shared_ptr<lib> load_library(const std::string_view libname);
+		static void unload_library(const std::string_view libname);
 	};
 } // namespace RF
 
