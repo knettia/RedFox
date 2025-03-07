@@ -81,6 +81,8 @@ RF::sys::memory_data_t RF::sys::get_process_memory()
 #include <dlfcn.h> // dladdr
 #include <libgen.h> // basename
 #include <cxxabi.h>
+#elif defined (_WIN32)
+#include <dbghelp.h>
 #endif
 
 RF::sys::stack_trace_t RF::sys::get_stack_trace()
@@ -123,16 +125,111 @@ RF::sys::stack_trace_t RF::sys::get_stack_trace()
 		stack_entries.push_back(entry);
 	}
 #elif defined(_WIN32)
+	void* callstack[UINT8_MAX];
+	HANDLE process = GetCurrentProcess();
+	SymInitialize(process, nullptr, TRUE);
 
+	CONTEXT context;
+	RtlCaptureContext(&context);
+
+	STACKFRAME64 stackframe;
+	memset(&stackframe, 0, sizeof(STACKFRAME64));
+
+#ifdef _M_IX86
+	stackframe.AddrPC.Offset = context.Eip;
+	stackframe.AddrPC.Mode = AddrModeFlat;
+	stackframe.AddrFrame.Offset = context.Ebp;
+	stackframe.AddrFrame.Mode = AddrModeFlat;
+	stackframe.AddrStack.Offset = context.Esp;
+	stackframe.AddrStack.Mode = AddrModeFlat;
+#elif _M_X64
+	stackframe.AddrPC.Offset = context.Rip;
+	stackframe.AddrPC.Mode = AddrModeFlat;
+	stackframe.AddrFrame.Offset = context.Rsp;
+	stackframe.AddrFrame.Mode = AddrModeFlat;
+	stackframe.AddrStack.Offset = context.Rsp;
+	stackframe.AddrStack.Mode = AddrModeFlat;
+#endif
+
+	for (int i = 0; i < UINT8_MAX; i++)
+	{
+		if (!StackWalk64(
+			// TODO: change on system
+			IMAGE_FILE_MACHINE_AMD64,
+			process,
+			GetCurrentThread(),
+			&stackframe,
+			&context,
+			nullptr,
+			SymFunctionTableAccess64,
+			SymGetModuleBase64,
+			nullptr
+		))
+		{ break; }
+
+		DWORD64 address = stackframe.AddrPC.Offset;
+		char symbol_buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+		PSYMBOL_INFO symbol = reinterpret_cast<PSYMBOL_INFO>(symbol_buffer);
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		symbol->MaxNameLen = MAX_SYM_NAME;
+
+		if (SymFromAddr(process, address, nullptr, symbol))
+		{
+			MODULEINFO moduleInfo;
+			HMODULE hModule = (HMODULE)SymGetModuleBase64(process, address);
+			if (hModule && GetModuleInformation(process, hModule, &moduleInfo, sizeof(moduleInfo)))\
+			{
+				char module_name[MAX_PATH];
+				GetModuleFileNameA(hModule, module_name, sizeof(module_name));
+				std::string process_name = RF::basename(std::string_view(module_name));
+		
+				stack_entry_t entry
+				{
+					.frame = std::int8_t(i + 1),
+					.address = address,
+					.process = process_name,
+					.callname = std::string(symbol->Name)
+				};
+
+				stack_entries.push_back(entry);
+			}
+			else
+			{
+				stack_entry_t entry
+				{
+					.frame = std::int8_t(i + 1),
+					.address = address,
+					.process = "???",
+					.callname = "???"
+				};
+				
+				stack_entries.push_back(entry);
+			}
+		}
+		else 
+		{
+			stack_entry_t entry
+			{
+				.frame = std::int8_t(i + 1),
+				.address = address,
+				.process = "???",
+				.callname = "???"
+			};
+
+			stack_entries.push_back(entry);
+		}
+	}
+
+	SymCleanup(process);
 #endif
 
 	return stack_entries;
 }
 
+#if defined (__linux__)
 #include <fstream>
 #include <regex>
 
-#if defined (__linux__)
 std::string RF::sys::get_distro_name()
 {
 	// read at: https://lindevs.com/get-linux-distribution-name-using-cpp
@@ -153,7 +250,7 @@ std::string RF::sys::get_distro_name()
 
 	return name;
 }
-#endif
+#endif // __linux__
 
 std::string RF::sys::get_process_name()
 {
@@ -161,9 +258,9 @@ std::string RF::sys::get_process_name()
 	#if defined(__APPLE__) || defined(__FreeBSD__)
 	return getprogname();
 	#elif defined(_GNU_SOURCE)
-	return program_invocation_name;
+	return basename(program_invocation_name);
 	#elif defined(_WIN32)
-	return __argv[0];
+	return RF::basename(__argv[0]);
 	#else
 	return "???";
 	#endif
@@ -171,18 +268,17 @@ std::string RF::sys::get_process_name()
 
 #include <chrono>
 #include <ctime>
-#include <unordered_map>
 
 RF::sys::utc_time_t RF::sys::get_current_time()
 {
 	auto now = std::chrono::system_clock::now();
-
+	
 	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-
+	
 	std::tm utc_tm = *std::gmtime(&now_c);
-
+	
 	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-
+	
 	utc_time_t current_time;
 	current_time.year = std::uint16_t(utc_tm.tm_year + 1900);
 	current_time.month = std::uint16_t(utc_tm.tm_mon + 1);
@@ -191,13 +287,17 @@ RF::sys::utc_time_t RF::sys::get_current_time()
 	current_time.minute = std::uint16_t(utc_tm.tm_min);
 	current_time.second = std::uint16_t(utc_tm.tm_sec);
 	current_time.millisecond = std::uint16_t(milliseconds.count());
-    
+	
 	return current_time;
 }
 
+#if defined (__linux__)
+#include <unordered_map>
+#endif // __linux__
+
 #if defined (__APPLE__)
 #include <sys/sysctl.h>
-#endif
+#endif // __APPLE__
 
 RF::sys::cpu_info_t RF::sys::get_cpu_info()
 {
