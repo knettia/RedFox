@@ -61,6 +61,12 @@ std::unordered_map<int, std::string> unix_signal_map
  * Platform: platform
  * Time: YYYY-MM-DDTHH:MM:SS.MILLZ
  *
+ * CPU: | Model: model
+ *      | Clock Speed: num
+ *      | Physical Cores: num
+ *      | Logical Cores: num
+ *      | Architecture: architecture
+ *
  * Virtual Memory Usage: num MiB
  * Physical Memory Usage: num MiB
  * 
@@ -99,6 +105,16 @@ void RF::monitor_m::handle_crash_(int signal)
 	RF::sys::utc_time_t time = RF::sys::get_current_time();
 	log_stream << RF::format_view("Time: <0>-<1>-<2>T<3>:<4>:<5>.<6>Z", time.year, time.month, time.day, time.hour, time.minute, time.second, time.millisecond) << '\n';
 
+	log_stream << '\n';
+	
+	RF::sys::cpu_info_t cpu_info = RF::sys::get_cpu_info();
+	
+	log_stream << RF::format_view("CPU : | Model: <0>", cpu_info.model) << '\n';
+	log_stream << RF::format_view("      | Clock Speed: <0>", cpu_info.clock_speed) << '\n';
+	log_stream << RF::format_view("      | Physical Cores: <0>", static_cast<std::uint16_t>(cpu_info.physical_cores)) << '\n';
+	log_stream << RF::format_view("      | Logical Cores: <0>", static_cast<std::uint16_t>(cpu_info.logical_cores)) << '\n';
+	log_stream << RF::format_view("      | Architecture: <0>", cpu_info.architecture) << '\n';
+	
 	log_stream << '\n';
 
 	log_stream << RF::format_view("Virtual Memory Usage: <0> GiB", RF::double_to_string(process_memory.virtual_size.count(), 2)) << '\n';
