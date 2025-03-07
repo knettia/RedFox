@@ -35,8 +35,6 @@ void RF::logf::out(RF::logf::level_t level, std::string_view fmt, Args &&...args
 	{
 		std::cout << color << prefix << RF::logf::detail::reset << " :: " << view << '\n';
 	}
-
-	std::cout << '\n';
 }
 
 template <typename ...Args>
