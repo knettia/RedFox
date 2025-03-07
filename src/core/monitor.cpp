@@ -34,6 +34,7 @@ void RF::monitor_m::activate(bool b)
 
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
 
 #if defined (__linux__) || defined (__APPLE__)
 std::unordered_map<int, std::string> unix_signal_map
