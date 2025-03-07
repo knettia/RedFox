@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "RF/monitor.hpp"
 #include "RF/system.hpp"
 #include "RF/string.hpp"
@@ -6,14 +7,16 @@
 #if defined (__linux__) || defined (__APPLE__)
 #include <csignal>
 #include <cstdlib>
+#elif defined (_WIN32)
+#include <windows.h>
 #endif
 
 void RF::monitor_m::activate(bool b)
 {
-#if defined (__linux__) || defined (__APPLE__)
+#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
 	typedef void (*unix_func)(int);
 	unix_func func = b ? RF::monitor_m::handle_crash_ : nullptr;
-
+	
 	std::signal(SIGABRT, func);
 	std::signal(SIGSEGV, func);
 	std::signal(SIGQUIT, func);
@@ -28,15 +31,19 @@ void RF::monitor_m::activate(bool b)
 	std::signal(SIGINT, func);
 	std::signal(SIGHUP, func);
 #elif defined (_WIN32)
+	typedef LONG (WINAPI *win32_func)(EXCEPTION_POINTERS*);
+	win32_func func = b ? RF::monitor_m::handle_crash_ : nullptr;
 
+	SetUnhandledExceptionFilter(func);
 #endif
 }
 
 #include <iomanip>
 #include <sstream>
+
+#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
 #include <unordered_map>
 
-#if defined (__linux__) || defined (__APPLE__)
 std::unordered_map<int, std::string> unix_signal_map
 {
 	{SIGABRT, "SIGABRT"},
@@ -77,8 +84,10 @@ std::unordered_map<int, std::string> unix_signal_map
  *     | 3  process :    0x0000000000000000 symbol
  *     | 4  process :    0x0000000000000000 symbol
  */
-#if defined (__linux__) || defined (__APPLE__)
+#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
 void RF::monitor_m::handle_crash_(int signal)
+#elif defined (_WIN32)
+LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 #endif
 {
 	#if defined (__linux__) || defined (__APPLE__)
@@ -96,7 +105,7 @@ void RF::monitor_m::handle_crash_(int signal)
 	platform = RF::format_view("Linux <0>", RF::sys::get_distro_name()) ;
 	#elif defined (__APPLE__)
 	platform = "macOS (OS X)";
-	#elif
+	#elif defined (_WIN32)
 	platform = "Windows";
 	#endif
 	
@@ -118,11 +127,11 @@ void RF::monitor_m::handle_crash_(int signal)
 	log_stream << '\n';
 	
 	#if defined (__APPLE__)
-	log_stream << RF::format_view("Virtual Memory Usage: <0> GiB", RF::double_to_string(RF::memory_cast<gibibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
+	log_stream << RF::format_view("Virtual Memory Usage: <0> GiB", RF::double_to_string(RF::memory_cast<RF::gibibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
 	#else
-	log_stream << RF::format_view("Virtual Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<mebibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
+	log_stream << RF::format_view("Virtual Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<RF::mebibyte_scale>(process_memory.virtual_size).count(), 2)) << '\n';
 	#endif
-	log_stream << RF::format_view("Physical Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<mebibyte_scale>(process_memory.physical_size).count(), 2)) << '\n';
+	log_stream << RF::format_view("Physical Memory Usage: <0> MiB", RF::double_to_string(RF::memory_cast<RF::mebibyte_scale>(process_memory.physical_size).count(), 2)) << '\n';
 
 	log_stream << '\n';
 	
@@ -164,7 +173,28 @@ void RF::monitor_m::handle_crash_(int signal)
 	}
 
 	// for now just print the log
+	// TODO: implement saving crashlog in file
 	RF::logf::error(log_stream.str());
 
+	#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
 	std::abort();
+	#elif defined (_WIN32)
+	int result = MessageBoxA(
+		NULL,
+		"Oh no! A crash has occurred. We are sorry for the inconvenience, for more information, check the crash log.",
+		"RedFox Engine: Process Crashed",
+		MB_ICONERROR | MB_YESNO | MB_DEFBUTTON2
+	);
+	
+	if (result == IDYES)
+	{
+		// TODO: implement opuning the crashlog file just saved
+	}
+	else if (result == IDNO)
+	{
+		PostQuitMessage(0);
+	}
+
+	return EXCEPTION_EXECUTE_HANDLER; 
+	#endif
 }
