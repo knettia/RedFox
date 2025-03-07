@@ -1,8 +1,7 @@
-#include "RedFox/core/types/library.hpp" // header
-#include "RedFox/core/utils/ignoramus.hpp" // RF::ignoramus::logf
+#include "RF/library.hpp" // header
 
 // library manager
-RF::library_m& RF::library_m::self()
+RF::library_m &RF::library_m::self()
 {
 	static RF::library_m inst;
 	return inst;
@@ -13,7 +12,6 @@ std::shared_ptr<RF::library_m::lib> RF::library_m::load_library(const std::strin
 	auto it = this->libraries_.find(libname.data());
 	if (it != this->libraries_.end())
 	{
-		RF::ignoramus::logf(RF::ignoramus_t::info, "Using cached library: <0>", libname);
 		return it->second;
 	}
 
