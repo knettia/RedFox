@@ -46,4 +46,15 @@ namespace RF::sys
 	};
 
 	RF::sys::utc_time_t get_current_time();
+
+	struct cpu_info_t
+	{
+		std::string model;
+		std::string architecture;
+		std::uint8_t physical_cores;
+		std::uint8_t logical_cores;
+		double clock_speed;
+	};
+
+	RF::sys::cpu_info_t get_cpu_info();
 }

@@ -192,3 +192,42 @@ RF::sys::utc_time_t RF::sys::get_current_time()
     
 	return current_time;
 }
+
+#if defined (__APPLE__)
+#include <sys/sysctl.h>
+#endif
+
+RF::sys::cpu_info_t RF::sys::get_cpu_info()
+{
+	RF::sys::cpu_info_t info;
+#if defined (__linux__)
+
+#elif defined (__APPLE__)
+	char buffer[128];
+	size_t buffer_size = sizeof(buffer);
+
+	sysctlbyname("machdep.cpu.brand_string", &buffer, &buffer_size, nullptr, 0);
+	info.model = buffer;
+
+	int physical_cores;
+	buffer_size = sizeof(physical_cores);
+	sysctlbyname("hw.physicalcpu", &physical_cores, &buffer_size, nullptr, 0);
+	info.physical_cores = physical_cores;
+
+	int logical_cores;
+	buffer_size = sizeof(logical_cores);
+	sysctlbyname("hw.logicalcpu", &logical_cores, &buffer_size, nullptr, 0);
+	info.logical_cores = logical_cores;
+
+	uint64_t frequency;
+	buffer_size = sizeof(frequency);
+	sysctlbyname("hw.cpufrequency", &frequency, &buffer_size, nullptr, 0);
+	info.clock_speed = frequency / 1'000'000; // Convert Hz to MHz
+
+	buffer_size = sizeof(buffer);
+	sysctlbyname("hw.machine", &buffer, &buffer_size, nullptr, 0);
+	info.architecture = buffer;
+#endif
+
+	return info;
+}
