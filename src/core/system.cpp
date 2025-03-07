@@ -201,7 +201,29 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 {
 	RF::sys::cpu_info_t info;
 #if defined (__linux__)
+	// read: https://www.geeksforgeeks.org/check-linux-cpu-information/?utm_source=chatgpt.com
+	// Not tested:
+	std::ifstream cpuinfo_file("/proc/cpuinfo");
+	std::string line;
+	std::unordered_map<std::string, std::string> cpuinfo_map;
 
+	while (std::getline(cpuinfo_file, line))
+	{
+		std::istringstream iss(line);
+		std::string key;
+		if (std::getline(iss, key, ':'))
+		{
+			std::string value;
+			if (std::getline(iss, value))
+			{ cpuinfo_map[key] = value; }
+		}
+	}
+
+	info.model_name = cpuinfo_map["model name"];
+	info.clock_speed = std::stod(cpuinfo_map["cpu MHz"]);
+	info.architecture = cpuinfo_map["architecture"];
+	info.logical_cores = std::stoi(cpuinfo_map["siblings"]);
+	info.physical_cores = std::stoi(cpuinfo_map["cpu cores"]);
 #elif defined (__APPLE__)
 	char buffer[128];
 	size_t buffer_size = sizeof(buffer);
@@ -227,6 +249,73 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 	buffer_size = sizeof(buffer);
 	sysctlbyname("hw.machine", &buffer, &buffer_size, nullptr, 0);
 	info.architecture = buffer;
+#elif defined (_WIN32)
+	// read: https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getlogicalprocessorinformation?utm_source=chatgpt.com
+	// Not tested:
+	SYSTEM_INFO sys_info;
+	GetSystemInfo(&sys_info);
+	info.logical_cores = sys_info.dwNumberOfProcessors;
+
+	switch (sys_info.wProcessorArchitecture)
+	{
+		case (PROCESSOR_ARCHITECTURE_AMD64):
+		{
+			info.architecture = "x64";
+			break;
+		}
+		case (PROCESSOR_ARCHITECTURE_INTEL):
+		{
+			info.architecture = "x86";
+			break;
+		}
+		case (PROCESSOR_ARCHITECTURE_ARM64):
+		{
+			info.architecture = "ARM64";
+			break;
+		}
+		default:
+		{
+			info.architecture = "Unknown";
+			break;
+		}
+	}
+
+	HKEY hKeyProcessor;
+	LONG lError = RegOpenKeyEx(
+		HKEY_LOCAL_MACHINE,
+		"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+		0,
+		KEY_READ,
+		&hKeyProcessor
+	);
+
+	if (lError == ERROR_SUCCESS)
+	{
+		char buffer[128];
+		DWORD buffer_size = sizeof(buffer);
+		RegQueryValueEx(hKeyProcessor, "ProcessorNameString", nullptr, nullptr, (LPBYTE)buffer, &buffer_size);
+		info.model_name = buffer;
+
+		DWORD mhz;
+		buffer_size = sizeof(mhz);
+		RegQueryValueEx(hKeyProcessor, "~MHz", nullptr, nullptr, (LPBYTE)&mhz, &buffer_size);
+		info.clock_speed = static_cast<double>(mhz);
+
+		RegCloseKey(hKeyProcessor);
+	}
+
+	DWORD length = 0;
+	GetLogicalProcessorInformation(nullptr, &length);
+	std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> buffer(length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+	GetLogicalProcessorInformation(buffer.data(), &length);
+
+	int physical_cores = 0;
+	for (const auto& info : buffer)
+	{
+		if (info.Relationship == RelationProcessorCore)
+		{ physical_cores++; }
+	}
+	info.physical_cores = physical_cores;
 #endif
 
 	return info;
