@@ -15,8 +15,6 @@ RF::sys::memory_data_t RF::sys::get_process_memory()
 	#if defined (__linux__)
 	// read: https://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
 	// Not tested:
-	struct sysinfo info;
-	
 	std::ifstream status_file("/proc/self/status");
 	std::string line;
 	std::size_t vm_size = 0;
@@ -91,6 +89,9 @@ RF::sys::stack_trace_t RF::sys::get_stack_trace()
 #if defined (__linux__) || defined (__APPLE__)
 	void* callstack[UINT8_MAX];
 	int traceframes = backtrace(callstack, UINT8_MAX);
+	char **symbols = backtrace_symbols(callstack, traceframes);
+
+	dlopen(nullptr, RTLD_NOW | RTLD_GLOBAL);
 
 	for (int i = 0; i < traceframes; i++)
 	{
@@ -113,8 +114,8 @@ RF::sys::stack_trace_t RF::sys::get_stack_trace()
 		RF::sys::stack_entry_t entry
 		{
 			.frame = std::int8_t(i + 2),
-			.process = std::string(info.dli_fname ? basename(const_cast<char *>(info.dli_fname)) : "???"),
 			.address = std::uint64_t(reinterpret_cast<std::uint64_t *>(callstack[i])),
+			.process = std::string(info.dli_fname ? basename(const_cast<char *>(info.dli_fname)) : "???"),
 			.callname = std::string(info.dli_sname ? symbol_name : "???")
 		};
 		
@@ -127,24 +128,29 @@ RF::sys::stack_trace_t RF::sys::get_stack_trace()
 	return stack_entries;
 }
 
+#include <fstream>
+#include <regex>
+
 #if defined (__linux__)
 std::string RF::sys::get_distro_name()
 {
 	// read at: https://lindevs.com/get-linux-distribution-name-using-cpp
 	std::ifstream stream("/etc/os-release");
 	std::string line;
-	std::regex nameRegex("^NAME=\"(.*?)\"$");
+	std::regex name_regex("^NAME=\"(.*?)\"$");
 	std::smatch match;
 
 	std::string name;
 	while (std::getline(stream, line))
 	{
-		if (std::regex_search(line, match, nameRegex))
+		if (std::regex_search(line, match, name_regex))
 		{
 			name = match[1].str();
 			break;
 		}
 	}
+
+	return name;
 }
 #endif
 
