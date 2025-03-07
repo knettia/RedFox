@@ -76,7 +76,7 @@ std::string RF::trim(std::string_view str)
 std::string RF::basename(std::string_view str)
 {
 #if defined (__linux__) || defined (__APPLE__)
-	return std::string(::basename(str.data()));
+	return std::string(::basename(const_cast<char *>(str.data())));
 #elif defined (_WIN32)
 	std::string_view::size_type pos = str.find_last_of("\\/");
 	if (pos != std::string_view::npos)
