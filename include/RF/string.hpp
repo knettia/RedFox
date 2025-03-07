@@ -3,6 +3,7 @@
 #include <sstream> // std::ostringstream
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace RF
 {
