@@ -55,6 +55,20 @@ std::vector<std::string> RF::split_lines(std::string_view input)
 	return lines;
 }
 
+std::string RF::trim(std::string_view str)
+{
+	// std::size_t first = str.find_first_not_of(' ');
+	std::size_t first = str.find_first_not_of(" \t\n\r\f\v");
+
+	if (first == std::string_view::npos)
+	{ return std::string(); }
+
+	// std::size_t last = str.find_last_not_of(' ');
+	std::size_t last = str.find_last_not_of(" \t\n\r\f\v");
+
+	return std::string(str.substr(first, (last - first + 1)));
+}
+
 std::string RF::format_view(std::string_view fmt, std::vector<std::string> list)
 {
 	std::ostringstream result;

@@ -11,8 +11,10 @@ namespace RF
 
 	std::string to_utf8(char32_t ch);
 	std::string double_to_string(double d, std::uint8_t p);
-
+	
 	std::vector<std::string> split_lines(std::string_view input);
+
+	std::string trim(std::string_view str);
 
 	template <typename T>
 	std::string to_oss_str(T &&value);
