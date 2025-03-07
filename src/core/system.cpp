@@ -34,8 +34,8 @@ RF::sys::memory_data_t RF::sys::get_process_memory()
 	
 	return
 	{
-		RF::memory_cast<RF::gibibyte_scale>(RF::bytes(vm_size * 1024)),
-		RF::memory_cast<RF::mebibyte_scale>(RF::bytes(vm_rss * 1024))
+		RF::bytes(vm_size * 1024),
+		RF::bytes(vm_rss * 1024)
 	};
 	#elif defined (__APPLE__)
 	struct task_basic_info info;
@@ -45,15 +45,15 @@ RF::sys::memory_data_t RF::sys::get_process_memory()
 	{
 		return
 		{
-			RF::gibibytes(0),
-			RF::mebibytes(0)
+			RF::bytes(0),
+			RF::bytes(0)
 		};
 	}
 	
 	return
 	{
-		RF::memory_cast<gibibyte_scale>(RF::bytes(info.virtual_size)),
-		RF::memory_cast<mebibyte_scale>(RF::bytes(info.resident_size))
+		RF::bytes(info.virtual_size),
+		RF::bytes(info.resident_size)
 	};
 	#elif defined(_WIN32)
 	// read: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process/
@@ -63,14 +63,14 @@ RF::sys::memory_data_t RF::sys::get_process_memory()
 	{
 		return
 		{
-			RF::memory_cast<gibibyte_scale>(RF::bytes(pmc.PrivateUsage)),
-			RF::memory_cast<mebibyte_scale>(RF::bytes(pmc.WorkingSetSize))
+			RF::bytes(pmc.PrivateUsage),
+			RF::bytes(pmc.WorkingSetSize)
 		};
 	}
 	return
 	{
-		RF::gibibytes(0),
-		RF::mebibytes(0)
+		RF::bytes(0),
+		RF::bytes(0)
 	};
 	#endif
 }

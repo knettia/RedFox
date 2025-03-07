@@ -10,8 +10,8 @@ namespace RF::sys
 {
 	struct memory_data_t
 	{
-		RF::gibibytes virtual_size;
-		RF::mebibytes physical_size;
+		RF::bytes virtual_size;
+		RF::bytes physical_size;
 	};
 
 	struct stack_entry_t
