@@ -41,6 +41,13 @@ std::string RF::double_to_string(double d, std::uint8_t p)
 	return oss.str();
 }
 
+std::string RF::int_to_string(std::uint64_t i, std::uint8_t d)
+{
+	std::ostringstream oss;
+	oss << std::setw(d) << std::setfill('0') << i;
+	return oss.str();
+}
+
 std::vector<std::string> RF::split_lines(std::string_view input)
 {
 	std::vector<std::string> lines;
