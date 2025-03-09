@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <string_view>
+
 #if defined (_WIN32)
 #include <windows.h>
 #endif // _WIN32
@@ -13,8 +16,11 @@ namespace RF
 		~monitor_m() = delete;
 
 		static void activate(bool);
+		static void set_save_path(std::string_view sw);
 	private:
-		static void evacuate_();
+		static std::string save_path_;
+		static void open_save_path_();
+		static void crash_dialogue_();
 		
 		#if defined (__linux__) || defined (__APPLE__)
 		static void handle_crash_(int signal);
