@@ -1,3 +1,4 @@
+#include "RF/file.hpp"
 #define NOMINMAX
 #include "RF/monitor.hpp"
 #include "RF/system.hpp"
@@ -10,6 +11,8 @@
 #elif defined (_WIN32)
 #include <windows.h>
 #endif
+
+std::string RF::monitor_m::save_path_;
 
 void RF::monitor_m::activate(bool b)
 {
@@ -36,6 +39,17 @@ void RF::monitor_m::activate(bool b)
 
 	SetUnhandledExceptionFilter(func);
 #endif
+}
+
+void RF::monitor_m::set_save_path(std::string_view sw)
+{
+	RF::monitor_m::save_path_ = std::string(sw);
+}
+
+void RF::monitor_m::open_save_path_()
+{
+	if (RF::file_m::exists(RF::monitor_m::save_path_))
+	{ RF::file_m::open_file(RF::monitor_m::save_path_); }
 }
 
 #include <iomanip>
@@ -112,7 +126,16 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 	log_stream << RF::format_view("Platform: <0>", platform) << '\n';
 	
 	RF::sys::utc_time_t time = RF::sys::get_current_time();
-	log_stream << RF::format_view("Time: <0>-<1>-<2>T<3>:<4>:<5>.<6>Z", time.year, time.month, time.day, time.hour, time.minute, time.second, time.millisecond) << '\n';
+	log_stream << RF::format_view(
+		"Time: <0>-<1>-<2>T<3>:<4>:<5>.<6>Z",
+		RF::int_to_string(time.year,        4),
+		RF::int_to_string(time.month,       2),
+		RF::int_to_string(time.day,         2),
+		RF::int_to_string(time.hour,        2),
+		RF::int_to_string(time.minute,      2),
+		RF::int_to_string(time.second,      2),
+		RF::int_to_string(time.millisecond, 3)
+	) << '\n';
 	
 	log_stream << '\n';
 	
@@ -172,28 +195,15 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 		<< "\n";
 	}
 
-	// for now just print the log
-	// TODO: implement saving crashlog in file
 	RF::logf::error(log_stream.str());
+
+	RF::file_m::write_file(RF::monitor_m::save_path_, log_stream.str(), true);
+
+	RF::monitor_m::crash_dialogue_();
 
 	#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
 	std::abort();
 	#elif defined (_WIN32)
-	int result = MessageBoxA(
-		NULL,
-		"Oh no! A crash has occurred. We are sorry for the inconvenience, for more information, check the crash log.",
-		"RedFox Engine: Process Crashed",
-		MB_ICONERROR | MB_YESNO | MB_DEFBUTTON2
-	);
-	
-	if (result == IDYES)
-	{
-		// TODO: implement opuning the crashlog file just saved
-	}
-	else if (result == IDNO)
-	{
-		PostQuitMessage(0);
-	}
 
 	return EXCEPTION_EXECUTE_HANDLER; 
 	#endif
