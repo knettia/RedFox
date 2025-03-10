@@ -36,4 +36,31 @@ void RF::monitor_m::crash_dialogue_()
 	{ RF::monitor_m::open_save_path_(); }
 }
 
+void RF::monitor_m::exception_dialogue_(std::string_view title, std::string_view description)
+{
+	NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+
+	[alert setMessageText:[NSString stringWithUTF8String:title.data()]];
+
+	[alert setInformativeText:[NSString stringWithUTF8String:description.data()]];
+
+	[alert setAlertStyle:NSAlertStyleCritical];
+
+	[alert addButtonWithTitle:@"OK"];
+
+	NSWindow *alert_window = [alert window];
+	[alert_window setLevel:NSModalPanelWindowLevel];
+	[alert_window makeKeyAndOrderFront:nil];
+	[NSApp activateIgnoringOtherApps:YES];
+
+	NSScreen *main_screen = [NSScreen mainScreen];
+	NSRect screen_frame = [main_screen frame];
+	NSRect window_frame = [alert_window frame];
+
+	CGFloat x = NSMidX(screen_frame) - (window_frame.size.width / 2);
+	CGFloat y = NSMidY(screen_frame) - (window_frame.size.height / 2);
+	[alert_window setFrameOrigin:NSMakePoint(x, y)];
+
+	NSModalResponse response = [alert runModal];
+}
 #endif // __APPLE__
