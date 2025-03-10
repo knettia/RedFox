@@ -101,14 +101,14 @@ std::unordered_map<int, std::string> unix_signal_map
  *     | 3  process :    0x0000000000000000 symbol
  *     | 4  process :    0x0000000000000000 symbol
  */
-#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
+#if defined (__UNIX_LIKE__)
 void RF::monitor_m::handle_crash_(int signal)
 #elif defined (_WIN32)
 LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 #endif
 {
 	// disable ABORT signal
-	#if defined (__linux__) || defined (__APPLE__)
+	#if defined (__UNIX_LIKE__)
 	std::signal(SIGABRT, nullptr);
 	#else // for non-UNIX
 	int signal = 0;
@@ -117,7 +117,7 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 	if (RF::monitor_m::handle_exception_())
 	{
 		// exit programme
-		#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
+		#if defined (__UNIX_LIKE__)
 		std::abort();
 		#elif defined (_WIN32)
 		return EXCEPTION_EXECUTE_HANDLER; 
@@ -132,7 +132,7 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 	RF::monitor_m::crash_dialogue_();
 
 	// exit programme
-	#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
+	#if defined (__UNIX_LIKE__)
 	std::abort();
 	#elif defined (_WIN32)
 	return EXCEPTION_EXECUTE_HANDLER; 
@@ -217,7 +217,7 @@ std::ostringstream RF::monitor_m::generate_crash_log_(int signal)
 	log_stream << '\n';
 
 	// UNIX terminate signal
-	#if defined (__linux__) || defined (__APPLE__)
+	#if defined (__UNIX_LIKE__)
 	log_stream << RF::format_view("UNIX Terminate Signal: <0>", unix_signal_map.at(signal)) << '\n';
 	log_stream << '\n';
 	#endif
