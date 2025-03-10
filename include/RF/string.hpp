@@ -12,6 +12,7 @@ namespace RF
 	std::string to_utf8(char32_t ch);
 	std::string double_to_string(double d, std::uint8_t p);
 	std::string int_to_string(std::uint64_t i, std::uint8_t d);
+	std::string int_to_hex(std::uint64_t i, std::uint8_t s);
 	
 	std::vector<std::string> split_lines(std::string_view input);
 

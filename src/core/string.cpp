@@ -48,6 +48,13 @@ std::string RF::int_to_string(std::uint64_t i, std::uint8_t d)
 	return oss.str();
 }
 
+std::string RF::int_to_hex(std::uint64_t i, std::uint8_t s)
+{
+	std::ostringstream oss;
+	oss << "0x" << std::setw(16) << std::setfill('0') << std::hex << i;
+	return oss.str();
+}
+
 std::vector<std::string> RF::split_lines(std::string_view input)
 {
 	std::vector<std::string> lines;
