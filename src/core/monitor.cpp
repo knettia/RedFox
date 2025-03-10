@@ -108,6 +108,8 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 	// disable ABORT signal
 	#if defined (__linux__) || defined (__APPLE__)
 	std::signal(SIGABRT, nullptr);
+	#else // for non-UNIX
+	int signal = 0;
 	#endif
 
 	if (RF::monitor_m::handle_exception_())
