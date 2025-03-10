@@ -1,6 +1,6 @@
 # compile
 set(TYPES_SOURCES "types/library.cpp")
-set(CORE_SOURCES "string.cpp" "file.cpp" "system.cpp" "monitor.cpp")
+set(CORE_SOURCES "exception.cpp" "string.cpp" "file.cpp" "system.cpp" "monitor.cpp")
 
 # append dialogues
 if(UNIX AND NOT APPLE)
