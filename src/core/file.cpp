@@ -21,7 +21,7 @@
 std::string RF::file_m::normalise_path_(const std::string_view path)
 {
 #if defined(_WIN32)
-	std::string fixed_path = path;
+	std::string fixed_path(path);
 	std::replace(fixed_path.begin(), fixed_path.end(), '/', '\\');
 	return fixed_path;
 #endif // _WIN32
