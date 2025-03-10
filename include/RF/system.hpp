@@ -2,9 +2,11 @@
 
 // std
 #include <string>
+#include <optional>
 
 #include "RF/memory.hpp"
 #include "RF/mass.hpp"
+#include "RF/definitions.hpp"
 
 namespace RF::sys
 {
@@ -34,6 +36,10 @@ namespace RF::sys
 	#endif
 	std::string distribution_name();
 	std::string distribution_version();
+	
+	#if defined (__LINUX__) || (defined (__BSD__) && !defined (__DARWIN__))
+	std::optional<std::string> x11_library_path();
+	#endif
 
 	std::string get_process_name();
 

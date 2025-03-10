@@ -541,3 +541,39 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 
 	return info;
 }
+
+#if defined (__LINUX__) || (defined (__BSD__) && !defined (__DARWIN__))
+std::optional<std::string> RF::sys::x11_library_path()
+{
+	constexpr std::vector<std::string> search_dirs
+	{
+		"/lib",
+		"/usr/lib",
+		"/usr/local/lib",
+		"/lib/x86_64-linux-gnu",
+		"/usr/lib/x86_64-linux-gnu",
+		"/lib/i386-linux-gnu",
+		"/usr/lib/i386-linux-gnu"
+	};
+
+	for (const auto& dir : search_dirs)
+	{
+		try
+		{
+			for (const auto& entry : fs::directory_iterator(dir))
+			{
+				if (entry.is_regular_file() && entry.path().filename().string().find("X11") != std::string::npos)
+				{
+					return entry.path().string();
+				}
+			}
+		}
+		catch (const std::exception& e)
+		{
+			// if any directory access fails, we can skip it
+		}
+	}
+
+	return std::nullopt;
+}
+#endif
