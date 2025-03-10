@@ -4,6 +4,8 @@
 #include "RF/system.hpp"
 #include "RF/string.hpp"
 
+#include "RF/definitions.hpp"
+
 #if defined (__linux__) || defined (__APPLE__)
 #include <csignal>
 #include <cstdlib>
@@ -183,7 +185,8 @@ std::ostringstream RF::monitor_m::generate_crash_log_(int signal)
 
 	// general details
 	log_stream << RF::format_view("Process: <0>", RF::sys::get_process_name()) << '\n';
-	log_stream << RF::format_view("Platform: <0>", RF::monitor_m::get_platform_name_()) << '\n';
+	log_stream << RF::format_view("System: <0>", RF::monitor_m::get_platform_name_()) << '\n';
+	log_stream << RF::format_view("Distribution: <0> <1>", RF::sys::distribution_name(), RF::sys::distribution_version()) << '\n';
 	log_stream << RF::format_view("Time: <0>", RF::monitor_m::get_timestamp_()) << '\n';
 
 	log_stream << '\n';
@@ -257,15 +260,17 @@ std::ostringstream RF::monitor_m::generate_stack_trace_()
 
 std::string RF::monitor_m::get_platform_name_()
 {
-	#if defined (__linux__)
-	return RF::format_view("Linux <0>", RF::sys::get_distro_name());
-	#elif defined (__APPLE__)
-	return "macOS (OS X)";
-	#elif defined (_WIN32)
+#if defined (__UNIX_LIKE__)
+#if defined (__LINUX__)
+	return "UNIX-like (GNU/Linux)";
+#elif defined (__DARWIN__)
+	return "UNIX-like (BSD/Mach-O)";
+#elif defined (__BSD__)
+	return "UNIX-like (BSD)";
+#endif
+#elif defined (__WINDOWS__)	
 	return "Windows";
-	#else
-	return "Unknown Platform";
-	#endif
+#endif
 }
 
 std::string RF::monitor_m::get_timestamp_()
