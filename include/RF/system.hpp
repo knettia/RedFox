@@ -32,6 +32,9 @@ namespace RF::sys
 	#if defined (__linux__)
 	std::string get_distro_name();
 	#endif
+	std::string distribution_name();
+	std::string distribution_version();
+
 	std::string get_process_name();
 
 	struct utc_time_t

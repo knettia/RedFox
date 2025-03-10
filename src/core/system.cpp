@@ -254,6 +254,124 @@ std::string RF::sys::get_distro_name()
 }
 #endif // __linux__
 
+#include "RF/definitions.hpp"
+
+#if defined(__UNIX_LIKE__)
+#include <sys/utsname.h>
+#elif defined(__WINDOWS__)
+#include <versionhelpers.h>
+#endif
+
+std::string RF::sys::distribution_name()
+{
+#if defined(__LINUX__)
+	std::ifstream stream("/etc/os-release");
+	std::string line;
+	std::regex name_regex("^NAME=\"(.*?)\"$");
+	std::smatch match;
+
+	std::string name = "???";
+	while (std::getline(stream, line))
+	{
+		if (std::regex_search(line, match, name_regex))
+		{
+			name = match[1].str();
+			break;
+		}
+	}
+
+	return name;
+#elif defined(__BSD__)
+	struct utsname uts;
+
+	std::string name = "???";
+	if (uname(&uts) == 0)
+	{
+		name = uts.sysname; // Darwin, FreeBSD, OpenBSD, NetBSD
+	}
+
+	return name;
+#elif defined(__WINDOWS__)
+	// TODO: determine Windows distribution in a better way
+	OSVERSIONINFOEX osvi = { sizeof(OSVERSIONINFOEX) };
+	GetVersionEx((OSVERSIONINFO*)&osvi);
+
+	std::string name = "???";
+	if (IsWindows10OrGreater())
+	{
+		name = (osvi.dwBuildNumber >= 22000) ? "Windows 11" : "Windows 10";
+	}
+	else if (IsWindows8Point1OrGreater()) { name = "Windows 8.1"; }
+	else if (IsWindows8OrGreater()) { name = "Windows 8"; }
+	else if (IsWindows7OrGreater()) { name = "Windows 7"; }
+	else if (IsWindowsVistaOrGreater()) { name = "Windows Vista"; }
+	else if (IsWindowsXPOrGreater()) { name = "Windows XP"; }
+	else { name = "Windows (Unknown)"; }
+
+	return name;
+#endif
+}
+
+std::string RF::sys::distribution_version()
+{
+	#if defined(__LINUX__)
+	std::ifstream stream("/etc/os-release");
+	std::string line;
+	std::regex version_regex("^VERSION=\"(.*?)\"$");
+	std::smatch match;
+
+	std::string version = "???";
+	while (std::getline(stream, line))
+	{
+		if (std::regex_search(line, match, version_regex))
+		{
+			version = match[1].str();
+			break;
+		}
+	}
+
+	return version;
+#elif defined(__BSD__)
+	struct utsname uts;
+
+	std::string version = "???";
+	if (uname(&uts) == 0)
+	{
+		version = uts.release;
+	}
+
+	return version;
+#elif defined(__WINDOWS__)
+	// TODO: determine Windows distribution in a better way
+	using RtlGetVersion_t = LONG(WINAPI*)(PRTL_OSVERSIONINFOW);
+	HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
+	if (hMod)
+	{
+		auto rtlGetVersion = (RtlGetVersion_t)GetProcAddress(hMod, "RtlGetVersion");
+		if (rtlGetVersion)
+		{
+			RTL_OSVERSIONINFOW info = { 0 };
+			info.dwOSVersionInfoSize = sizeof(info);
+			if (rtlGetVersion(&info) == 0)
+			{
+				return std::to_string(info.dwMajorVersion) + "." +
+				       std::to_string(info.dwMinorVersion) + "." +
+				       std::to_string(info.dwBuildNumber);
+			}
+		}
+	}
+
+	OSVERSIONINFO osvi { sizeof(OSVERSIONINFO) };
+	if (GetVersionEx(&osvi))
+	{
+		return std::to_string(osvi.dwMajorVersion) + "." +
+		       std::to_string(osvi.dwMinorVersion);
+	}
+
+	return "???";
+#endif
+}
+
 std::string RF::sys::get_process_name()
 {
 	// read: https://stackoverflow.com/questions/9097201/how-to-get-current-process-name-in-linux
