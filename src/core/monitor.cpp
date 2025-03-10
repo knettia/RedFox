@@ -244,7 +244,7 @@ std::ostringstream RF::monitor_m::generate_stack_trace_()
 	for (const RF::sys::stack_entry_t &entry : stack_trace)
 	{
 		log_stream << "    | "
-		           << std::right << std::setw(max_frame_width) << entry.frame << "  "
+		           << std::right << std::setw(max_frame_width) << static_cast<std::uint64_t>(entry.frame) << "  "
 		           << std::left << std::setw(max_process_width) << entry.process
 		           << RF::format_view(" :    <0> <1>", RF::int_to_hex(entry.address, 16), entry.callname)
 		           << "\n";
