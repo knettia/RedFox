@@ -141,6 +141,7 @@ LONG __cdecl RF::monitor_m::handle_crash_(EXCEPTION_POINTERS *exception_info)
 
 bool RF::monitor_m::handle_exception_()
 {
+	// TODO: fix rethrowing on Windows (for some reason it does not work)
 	try
 	{
 		if (std::exception_ptr eptr = std::current_exception())
