@@ -124,6 +124,8 @@ RF::sys::stack_trace_t RF::sys::get_stack_trace()
 		
 		stack_entries.push_back(entry);
 	}
+
+	free(symbols);
 #elif defined(_WIN32)
 	void* callstack[UINT8_MAX];
 	HANDLE process = GetCurrentProcess();
