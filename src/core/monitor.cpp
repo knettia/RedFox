@@ -264,9 +264,10 @@ std::string RF::monitor_m::get_platform_name_()
 #if defined (__UNIX_LIKE__)
 #if defined (__LINUX__)
 	return "UNIX-like (GNU/Linux)";
-#elif defined (__DARWIN__)
-	return "UNIX-like (BSD/Mach-O)";
 #elif defined (__BSD__)
+#if defined (__MACH__)
+	return "UNIX-like (BSD/Mach)";
+#endif
 	return "UNIX-like (BSD)";
 #endif
 #elif defined (__WINDOWS__)	
