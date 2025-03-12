@@ -465,7 +465,7 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 	uint64_t frequency;
 	buffer_size = sizeof(frequency);
 	sysctlbyname("hw.cpufrequency", &frequency, &buffer_size, nullptr, 0);
-	info.clock_speed = frequency / 1'000'000; // Convert Hz to MHz
+	info.clock_speed = static_cast<long double>(frequency) / 1'000'000; 
 
 	buffer_size = sizeof(buffer);
 	sysctlbyname("hw.machine", &buffer, &buffer_size, nullptr, 0);
