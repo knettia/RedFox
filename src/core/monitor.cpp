@@ -1,5 +1,5 @@
-#include "RF/file.hpp"
 #define NOMINMAX
+#include "RF/file.hpp"
 #include "RF/monitor.hpp"
 #include "RF/system.hpp"
 #include "RF/string.hpp"
