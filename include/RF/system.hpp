@@ -37,9 +37,6 @@ namespace RF::sys
 	std::string distribution_name();
 	std::string distribution_version();
 	
-	#if defined (__LINUX__) || (defined (__BSD__) && !defined (__DARWIN__))
-	std::optional<std::string> x11_library_path();
-	#endif
 
 	std::string get_process_name();
 
