@@ -83,14 +83,23 @@ std::string RF::trim(std::string_view str)
 	return std::string(str.substr(first, (last - first + 1)));
 }
 
-#if defined (__linux__) || defined (__APPLE__)
+#include "RF/definitions.hpp"
+
+#if defined (__UNIX_LIKE__)
 #include <libgen.h> // basename
+#if defined (__LINUX__)
+#undef basename
+#endif
 #endif // __linux__, __APPLE__
 
 std::string RF::basename(std::string_view str)
 {
-#if defined (__linux__) || defined (__APPLE__)
+#if defined (__UNIX_LIKE__)
+#if defined (__LINUX__)
+	return std::string(::__xpg_basename(const_cast<char *>(str.data())));
+#else
 	return std::string(::basename(const_cast<char *>(str.data())));
+#endif
 #elif defined (_WIN32)
 	std::string_view::size_type pos = str.find_last_of("\\/");
 	if (pos != std::string_view::npos)
