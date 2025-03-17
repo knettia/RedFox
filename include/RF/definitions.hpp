@@ -16,6 +16,10 @@
 #define __DARWIN__
 #endif
 
+#if !defined (__MACH__) && defined (__BSD__)
+#define __BSD_KERNEL__
+#endif
+
 #if defined(__linux__)
 #define __LINUX__
 #endif
