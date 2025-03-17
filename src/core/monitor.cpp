@@ -6,7 +6,7 @@
 
 #include "RF/definitions.hpp"
 
-#if defined (__linux__) || defined (__APPLE__)
+#if defined (__UNIX_LIKE__)
 #include <csignal>
 #include <cstdlib>
 #elif defined (_WIN32)
@@ -17,7 +17,7 @@ std::string RF::monitor_m::save_path_;
 
 void RF::monitor_m::activate(bool b)
 {
-#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
+#if defined (__UNIX_LIKE__)
 	typedef void (*unix_func)(int);
 	unix_func func = b ? RF::monitor_m::handle_crash_ : nullptr;
 	
@@ -56,7 +56,7 @@ void RF::monitor_m::open_save_path_()
 #include <iomanip>
 #include <sstream>
 
-#if defined (__linux__) || defined (__APPLE__) || defined (__FreeBSD__)  || defined (__OpenBSD__)
+#if defined (__UNIX_LIKE__)
 #include <unordered_map>
 
 std::unordered_map<int, std::string> unix_signal_map
