@@ -28,6 +28,9 @@ namespace RF
 			template<typename T>
 			std::function<T> get_function(const std::string_view symbol);
 
+			template<typename T>
+			T get_function_raw(const std::string_view symbol);
+
 			bool is_valid() const;
 		};
 
