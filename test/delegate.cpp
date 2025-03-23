@@ -1,6 +1,7 @@
 // RedFox
 #include <RedFox/core/base.hpp>
 #include <RedFox/render/interface.hpp>
+#include <RF/monitor.hpp>
 
 struct
 {
@@ -51,6 +52,9 @@ void handle_termination()
 
 int main()
 {
+	RF::monitor_m::activate(true);
+	RF::monitor_m::set_save_path("crash.log2");
+
 	game_process.setup_delegate();
 	game_process.delegate->set_terminate_callback(
 	[]() -> void
