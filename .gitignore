@@ -3,7 +3,11 @@
 **/.DS_Store
 
 # include
+# - stb
+include/stb_image.h
+# - asio
 include/asio
+# - vulkan
 include/vulkan
 include/vk_video
 
