@@ -1,8 +1,13 @@
+# macOS
 .DS_Store
 **/.DS_Store
+
+# include
 include/asio
 include/vulkan
 include/vk_video
+
+# development
 .archive
 .cache
 build
