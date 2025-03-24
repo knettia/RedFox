@@ -1,5 +1,5 @@
 # compile
-set(CORE_SOURCES "exception.cpp" "string.cpp" "file.cpp" "system.cpp" "monitor.cpp" "library.cpp")
+set(CORE_SOURCES "exception.cpp" "string.cpp" "file.cpp" "image.cpp" "system.cpp" "monitor.cpp" "library.cpp")
 
 # append dialogues
 if(UNIX AND NOT APPLE)
