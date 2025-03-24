@@ -1,7 +1,7 @@
 // RedFox
-#include <RedFox/core/base.hpp>
 #include <RedFox/render/interface.hpp>
 #include <RF/monitor.hpp>
+#include <RF/log.hpp>
 
 struct
 {
@@ -59,7 +59,7 @@ int main()
 	game_process.delegate->set_terminate_callback(
 	[]() -> void
 	{
-		RF::ignoramus::logf(RF::ignoramus_t::info, "user requested termination via RF::delegate");
+		RF::logf::info("user requested termination via RF::delegate");
 		handle_termination();
 	});
 	
@@ -67,19 +67,19 @@ int main()
 	game_process.main_window->set_close_callback(
 	[](RF::window *window) -> void
 	{
-		RF::ignoramus::logf(RF::ignoramus_t::info, "user requested termination via RF::delegate");
+		RF::logf::info("user requested termination via RF::window");
 		handle_termination();
 	});
 	
 	game_process.main_window->set_virtual_key_event_callback(
-		[](RF::window *window, RF::virtual_key_t key, RF::key_state_t state) -> void
+	[](RF::window *window, RF::virtual_key_t key, RF::key_state_t state) -> void
 	{
 		if (state == RF::key_state_t::Triggered)
 		{
 			if (key == RF::virtual_key_t::S)
 			{
-				RF::ignoramus::logf(
-					RF::ignoramus_t::info, "user triggered key <1> at RF::window <0>",
+				RF::logf::info(
+					"user triggered key <1> at RF::window <0>",
 					window->get_info().title,
 					RF::to_utf8(game_process.delegate->to_keysym(key))
 				);
@@ -92,8 +92,7 @@ int main()
 	{
 		if (state == RF::key_state_t::Triggered)
 		{
-			RF::ignoramus::logf(
-				RF::ignoramus_t::info,
+			RF::logf::info(
 				"user pressed mouse button <0>",
 				static_cast<int>(key)
 			);
