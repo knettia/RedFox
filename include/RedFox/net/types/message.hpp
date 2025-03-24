@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "RedFox/net/types/body.hpp"
-#include "RedFox/core/utils/template_utilities.hpp"
+#include "RF/template.hpp"
 
 namespace RF::net
 {

@@ -6,6 +6,8 @@
 #include "RedFox/net/types/connection.hpp"
 #include "RedFox/net/types/message.hpp"
 
+#include "RF/log.hpp"
+
 RF::net::socket::socket()
 :
 	socket_(context_),
@@ -49,7 +51,7 @@ void RF::net::socket::listen_()
 	{
 		if (ec)
 		{
-			RF::ignoramus::logf(RF::ignoramus_t::error, "Network error: <0>", ec.message());
+			RF::logf::error("Network error: <0>", ec.message());
 			return;
 		}
 

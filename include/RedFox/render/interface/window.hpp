@@ -1,9 +1,7 @@
 #pragma once
 // RedFox
-#include "RedFox/core/types/vector/vec2.hpp" // RF::uivec2
+#include "RF/vec2.hpp" // RF::uivec2
 
-// vulkan
-// #include "vulkan/vulkan.hpp"
 namespace vk
 {
 	struct Instance;

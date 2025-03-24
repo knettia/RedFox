@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RedFox/core/types/reference_ptr.hpp"
+#include "RF/reference_ptr.hpp"
 
 // asio
 #include <asio/ip/udp.hpp>
