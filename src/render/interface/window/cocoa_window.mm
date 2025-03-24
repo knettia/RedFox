@@ -1,6 +1,6 @@
-#import "./cocoa_window.hpp" // header
+#import "cocoa_window.hpp" // header
 #import "RedFox/render/interface/types/virtual_key.hpp"
-#import "RedFox/core/utils/ignoramus.hpp" // RF::ignoramus::logf
+#import "RF/log.hpp" // RF::logf::
 
 @implementation cocoa_view_m
 - (void) set_window:(RF::cocoa_window *) window
@@ -56,7 +56,7 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 			self.window_->handle_mouse_key_down(equivalent_key);
 		}
 		catch (...)
-		{ RF::ignoramus::logf(RF::ignoramus_t::warning, "from cocoa: not supported mouse button down, index <0>", event.buttonNumber); }
+		{ RF::logf::warn("from cocoa: not supported mouse button down, index <0>", event.buttonNumber); }
 	}
 }
 
@@ -70,7 +70,7 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 			self.window_->handle_mouse_key_up(equivalent_key);
 		}
 		catch (...)
-		{ RF::ignoramus::logf(RF::ignoramus_t::warning, "from cocoa: not supported mouse button up, index <0>", event.buttonNumber); }
+		{ RF::logf::warn("from cocoa: not supported mouse button up, index <0>", event.buttonNumber); }
 	}
 }
 @end

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RedFox/core/utils/ignoramus.hpp"
+#include "RF/log.hpp"
 
 namespace RF::net
 {
@@ -8,7 +8,7 @@ namespace RF::net
 	{
 		if(ec)
 		{
-			RF::ignoramus::logf(RF::ignoramus_t::error, "Network error: <0>", ec.message());
+			RF::logf::error("Network error: <0>", ec.message());
 			return;
 		}
 	}
