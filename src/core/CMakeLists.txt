@@ -1,6 +1,5 @@
 # compile
-set(TYPES_SOURCES "types/library.cpp")
-set(CORE_SOURCES "exception.cpp" "string.cpp" "file.cpp" "system.cpp" "monitor.cpp")
+set(CORE_SOURCES "exception.cpp" "string.cpp" "file.cpp" "system.cpp" "monitor.cpp" "library.cpp")
 
 # append dialogues
 if(UNIX AND NOT APPLE)
@@ -11,7 +10,7 @@ elseif(WIN32)
 	set(CORE_SOURCES ${CORE_SOURCES} "monitor/win32_dialogue.cpp")
 endif()
 
-add_library(redfox-core SHARED ${CORE_SOURCES} ${TYPES_SOURCES} "utils/ignoramus.cpp")
+add_library(redfox-core SHARED ${CORE_SOURCES})
 
 # include
 target_include_directories(redfox-core PRIVATE ${CMAKE_SOURCE_DIR}/include)
