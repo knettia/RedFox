@@ -19,11 +19,16 @@ namespace RF
 
 	struct image_data_t
 	{
-		std::vector<std::byte> data;
+		struct
+		{
+			std::byte *raw;
+			std::size_t size;
+		} data;
 		RF::uivec2 size;
 		RF::image_t type;
 
-		~image_data_t() = default; // auto-generate deconstructor for data and size
+		image_data_t(const std::uint8_t *src, std::size_t n);
+		~image_data_t();
 	};
 
 	RF::image_data_t load_image(RF::image_t type, std::string_view file);

@@ -7,6 +7,20 @@
 
 #include <ktx.h>
 
+RF::image_data_t::image_data_t(const std::uint8_t *src, std::size_t n)
+{
+	this->data.raw = new std::byte[n];
+	for (std::size_t i = 0; i < n; ++i)
+	{
+		this->data.raw[i] = static_cast<std::byte>(src[i]);
+	}
+}
+
+RF::image_data_t::~image_data_t()
+{
+	delete[] this->data.raw;
+}
+
 RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 {
 	switch (type)
@@ -25,15 +39,7 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 
 			std::size_t data_size = width * height * 4; // 4 channels (RGBA)
 
-			std::vector<std::byte> image_data(data_size);
-			std::memcpy(image_data.data(), reinterpret_cast<std::byte *>(data), data_size);
-			
-			RF::image_data_t result
-			{
-				std::move(image_data),
-				{width, height},
-				type
-			};
+			RF::image_data_t result(data, data_size);
 
 			stbi_image_free(data);
 
@@ -77,12 +83,7 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			std::vector<std::byte> image_data(data_size);
 			std::memcpy(image_data.data(), reinterpret_cast<std::byte *>(data), data_size);
 
-			RF::image_data_t result
-			{
-				std::move(image_data),
-				{kTexture->baseWidth, kTexture->baseHeight},
-				type
-			};
+			RF::image_data_t result(data, data_size);
 
 			ktxTexture_Destroy(kTexture);
 
@@ -101,6 +102,4 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			throw RF::engine_error{RF::format_view("Attempt to load file of an unimplemented type", file)};
 		}
 	}
-
-	return {};
 }
