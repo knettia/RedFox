@@ -39,6 +39,8 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			std::size_t data_size = width * height * 4; // 4 channels (RGBA)
 
 			RF::image_data_t result(data, data_size);
+			result.size = RF::uivec2(width, height);
+			result.type = type;
 
 			stbi_image_free(data);
 
@@ -79,10 +81,9 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			}
 
 			// handle vector translation
-			std::vector<std::byte> image_data(data_size);
-			std::memcpy(image_data.data(), reinterpret_cast<std::byte *>(data), data_size);
-
 			RF::image_data_t result(data, data_size);
+			result.size = RF::uivec2(kTexture->baseWidth, kTexture->baseHeight);
+			result.type = type;
 
 			ktxTexture_Destroy(kTexture);
 
