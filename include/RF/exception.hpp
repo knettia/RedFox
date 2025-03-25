@@ -1,27 +1,38 @@
 #pragma once
 
+#include "RF/string.hpp"
 #include "RF/system.hpp"
 
 #include <stdexcept>
-
-#include <string>
-#include <string_view>
+#include <string_view> 
 
 namespace RF
 {
+	class engine_error : public std::runtime_error
+	{
+	private:
+		RF::sys::stack_entry_t entry_;
+	public:
+		engine_error(const std::string_view message);
+		
+		template <typename ...Args>
+		engine_error(const std::string_view message, Args &&...args);
+
+		RF::sys::stack_entry_t entry() const;
+	};
+
 	class runtime_error : public std::runtime_error
 	{
 	private:
 		RF::sys::stack_entry_t entry_;
 	public:
-		explicit runtime_error(const std::string_view message);
+		runtime_error(const std::string_view message);
+
+		template <typename ...Args>
+		runtime_error(const std::string_view message, Args &&...args);
 
 		RF::sys::stack_entry_t entry() const;
 	};
+} // namespace RF
 
-	class engine_error : public RF::runtime_error
-	{
-	public:
-		explicit engine_error(const std::string_view message);
-	};
-}
+#include "RF/exception.ipp"
