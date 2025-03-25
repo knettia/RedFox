@@ -8,6 +8,7 @@
 
 RF::image_data_t::image_data_t(const std::uint8_t *src, std::size_t n)
 {
+	this->data.size = n;
 	this->data.raw = new std::byte[n];
 	for (std::size_t i = 0; i < n; ++i)
 	{
