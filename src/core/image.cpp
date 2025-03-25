@@ -1,5 +1,4 @@
 #include "RF/image.hpp"
-#include "RF/string.hpp"
 #include "RF/exception.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -34,7 +33,7 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 
 			if (!data)
 			{
-				throw RF::engine_error{RF::format_view("Failed to get image data from file '<0>' loaded with standard image type '<1>'", file, static_cast<int>(type))};
+				throw RF::engine_error("Failed to get image data from file '<0>' loaded with standard image type '<1>'", file, static_cast<int>(type));
 			}
 
 			std::size_t data_size = width * height * 4; // 4 channels (RGBA)
@@ -52,7 +51,7 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			ktx_error_code_e error_code = ktxTexture_CreateFromNamedFile(file.data(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &kTexture);
 			if(error_code != KTX_SUCCESS || !kTexture)
 			{
-				throw RF::runtime_error{RF::format_view("Failed to load KTX texture. KTX error code: <0>", ktxErrorString(error_code))};
+				throw RF::runtime_error("Failed to load KTX texture. KTX error code: <0>", ktxErrorString(error_code));
 			}
 
 			// get image data
@@ -93,13 +92,13 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 		case (RF::image_t::DDS):
 		{
 			// TODO: implement a dds loader
-			throw RF::engine_error{RF::format_view("Attempt to load file of an unimplemented type", file)};
+			throw RF::engine_error("Attempt to load file of an unimplemented type", file);
 		}
 
 		case (RF::image_t::BIT):
 		{
 			// TODO: implement a simple bmp loader
-			throw RF::engine_error{RF::format_view("Attempt to load file of an unimplemented type", file)};
+			throw RF::engine_error("Attempt to load file of an unimplemented type", file);
 		}
 	}
 }
