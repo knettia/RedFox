@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <windows.h>
 
-#include "RedFox/render/interface/types/virtual_key.hpp"
+#include "RF/interface/virtual_key.hpp"
 
 // internal
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

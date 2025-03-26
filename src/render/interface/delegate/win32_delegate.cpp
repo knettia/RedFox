@@ -1,5 +1,5 @@
 #include "./win32_delegate.hpp"
-#include "RedFox/render/interface/types/virtual_key.hpp"
+#include "RF/interface/virtual_key.hpp"
 
 // RF::win32_delegate implementation:
 RF::win32_delegate::~win32_delegate()

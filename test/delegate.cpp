@@ -1,5 +1,8 @@
 // RedFox
-#include <RedFox/render/interface.hpp>
+#include "RF/interface/graphics.hpp"
+#include "RF/interface/framework.hpp"
+#include "RF/interface/virtual_key.hpp"
+#include <RF/interface/delegate.hpp>
 #include <RF/monitor.hpp>
 #include <RF/log.hpp>
 

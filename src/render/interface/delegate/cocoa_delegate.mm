@@ -121,7 +121,7 @@ void RF::cocoa_delegate::poll_events()
 }
 
 #import <Carbon/Carbon.h>
-#import "RedFox/render/interface/types/virtual_key.hpp"
+#import "RF/interface/virtual_key.hpp"
 
 char32_t RF::cocoa_delegate::to_keysym(RF::virtual_key_t key)
 {
