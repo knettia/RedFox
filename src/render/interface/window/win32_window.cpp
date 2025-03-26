@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "RF/interface/virtual_key.hpp"
+#include "RF/log.hpp"
 
 // internal
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -164,6 +165,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					window->update_window_state(RF::window_state_t::Visible);
 				}
 			}
+			break;
+		}
+
+		case WM_MOUSEMOVE:
+		{
+			std::uint32_t x = LOWORD(lParam);
+			std::uint32_t y = HIWORD(lParam);
+
+			window->handle_mouse_update(RF::uivec2(x, y));
 			break;
 		}
 
@@ -362,6 +372,15 @@ void RF::win32_window::handle_mouse_key_up(RF::mouse_key_t key)
 		state = RF::key_state_t::Inactive;
 		call_mouse_event_callback(key, state);
 	}
+}
+
+void RF::win32_window::handle_mouse_update(RF::uivec2 position)
+{
+	RF::ivec2 diff = RF::ivec2(this->mouse_position_.x, this->mouse_position_.y) - position;
+	this->mouse_position_ = position;
+	
+	if (this->mouse_key_event_callback_)
+	{ this->mouse_move_callback_(this, position, diff); }
 }
 
 void RF::win32_window::focus()
