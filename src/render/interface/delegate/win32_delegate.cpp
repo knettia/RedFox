@@ -38,7 +38,7 @@ char32_t RF::win32_delegate::to_keysym(RF::virtual_key_t key)
 	{ return char32_t { U'\uFFFD' }; }
 
 	UINT code = codeopt.value();
-	UINT scan_code = MapVirtualKey(code, MAPVK_VK_TO_VSC);
+	UINT vk_code = MapVirtualKey(code, MAPVK_VSC_TO_VK);
 
 	WCHAR unicode_char[2] {0};
 
@@ -46,7 +46,7 @@ char32_t RF::win32_delegate::to_keysym(RF::virtual_key_t key)
 	if (!GetKeyboardState(keyboard_state))
 	{ return U'\uFFFD'; }
 
-	int result = ToUnicode(code, scan_code, keyboard_state, unicode_char, 2, 0);
+	int result = ToUnicode(vk_code, code, keyboard_state, unicode_char, 2, 0);
 
 	if (result == 1)
 	{ return static_cast<char32_t>(unicode_char[0]); }
