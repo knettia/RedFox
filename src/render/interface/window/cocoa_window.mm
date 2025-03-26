@@ -89,7 +89,14 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 {
 	if (self.window_)
 	{
-		self.window_->handle_mouse_update(RF::dvec2(self.window.mouseLocationOutsideOfEventStream.x, self.window.mouseLocationOutsideOfEventStream.y));
+		RF::uivec2 size = self.window_->get_info().size;
+		
+		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.x, 0.0, static_cast<double>(size.x)));
+		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.y, 0.0, static_cast<double>(size.y)));
+
+		y = size.y - y;
+
+		self.window_->handle_mouse_update(RF::uivec2(x, y));
 	}
 }
 @end
@@ -400,9 +407,9 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 	}
 }
 
-void RF::cocoa_window::handle_mouse_update(RF::dvec2 position)
+void RF::cocoa_window::handle_mouse_update(RF::uivec2 position)
 {
-	RF::dvec2 diff = this->mouse_position_ - position;
+	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
 	this->mouse_position_ = position;
 	
 	if (this->mouse_key_event_callback_)
