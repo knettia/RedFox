@@ -1,4 +1,4 @@
-#include "RedFox/render/interface/window.hpp"
+#include "RF/interface/window.hpp"
 #include "RedFox/render/interface/types/virtual_key.hpp"
 
 RF::window::window(RF::window_info info) : info_(std::move(info)), state_(RF::window_state_t::Focused)

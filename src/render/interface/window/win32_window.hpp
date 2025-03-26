@@ -1,7 +1,7 @@
 #if defined (_WIN32)
 #pragma once
 // RedFox
-#include "RedFox/render/interface/window.hpp"
+#include "RF/interface/window.hpp"
 
 // Windows
 #include <windows.h>

@@ -1,7 +1,6 @@
-// delegate.hpp
 #pragma once
 
-#include "RedFox/render/interface/window.hpp"
+#include "RF/interface/window.hpp"
 
 #include <string>
 #include <functional>
