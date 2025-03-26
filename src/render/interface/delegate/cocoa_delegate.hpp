@@ -1,7 +1,7 @@
 #if defined (__APPLE__)
 #pragma once
 // RedFox
-#include "RedFox/render/interface/delegate.hpp"
+#include "RF/interface/delegate.hpp"
 
 #ifdef __OBJC__
 #import <Cocoa/Cocoa.h>

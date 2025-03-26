@@ -1,4 +1,4 @@
-#include "RedFox/render/interface/delegate.hpp" // header
+#include "RF/interface/delegate.hpp" // header
 
 #if defined (__APPLE__)
 #include "./delegate/cocoa_delegate.hpp"

@@ -1,7 +1,7 @@
 #if defined (_WIN32)
 #pragma once
 // RedFox
-#include "RedFox/render/interface/delegate.hpp"
+#include "RF/interface/delegate.hpp"
 
 // Windows
 #include <windows.h>
