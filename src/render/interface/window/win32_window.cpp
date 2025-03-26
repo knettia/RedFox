@@ -28,7 +28,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				UINT scancode = (lParam >> 16) & 0xFF;
 
-				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[scancode];
+
 				if (keyopt.has_value())
 				{ window->handle_virtual_key_down(keyopt.value()); }
 			}
@@ -41,7 +42,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				UINT scancode = (lParam >> 16) & 0xFF;
 
-				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[wParam];
+				std::optional<RF::virtual_key_t> keyopt = RF::win32_key_map[scancode];
 				if (keyopt.has_value())
 				{ window->handle_virtual_key_up(keyopt.value()); }
 			}
