@@ -20,7 +20,7 @@ RF::delegate::delegate(RF::delegate_info info) : info_(info)
 RF::delegate::~delegate()
 { created_ = false; }
 
-#include "RedFox/render/interface/types/framework.hpp"
+#include "RF/interface/framework.hpp"
 
 RF::delegate *RF::delegate::create(RF::delegate_info info)
 {
