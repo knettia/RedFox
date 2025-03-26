@@ -43,6 +43,8 @@ namespace RF
 		void handle_mouse_key_down(RF::mouse_key_t key);
 		void handle_mouse_key_up(RF::mouse_key_t key);
 
+		void handle_mouse_update(RF::dvec2 position);
+
 		vk::ResultValue<vk::SurfaceKHR> create_surface(vk::Instance instance, const vk::AllocationCallbacks *allocator) override;
 
 		void close() override;

@@ -1,4 +1,4 @@
-#import "cocoa_window.hpp" // header
+#import "./cocoa_window.hpp" // header
 #import "RF/interface/virtual_key.hpp"
 #import "RF/log.hpp" // RF::logf::
 
@@ -7,6 +7,17 @@
 {
 	if (self)
 	{ self.window_ = window; }
+}
+
+- (void)viewDidMoveToWindow
+{
+	[super viewDidMoveToWindow];
+	[self.window setAcceptsMouseMovedEvents:YES];
+}
+
+- (BOOL)acceptsFirstResponder
+{
+	return YES;
 }
 
 // tagging in events of left mouse button 
@@ -71,6 +82,14 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 		}
 		catch (...)
 		{ RF::logf::warn("from cocoa: not supported mouse button up, index <0>", event.buttonNumber); }
+	}
+}
+
+- (void) mouseMoved:(NSEvent *) event
+{
+	if (self.window_)
+	{
+		self.window_->handle_mouse_update(RF::dvec2(self.window.mouseLocationOutsideOfEventStream.x, self.window.mouseLocationOutsideOfEventStream.y));
 	}
 }
 @end
@@ -379,6 +398,15 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 		state = RF::key_state_t::Inactive;
 		call_mouse_event_callback(key, state);
 	}
+}
+
+void RF::cocoa_window::handle_mouse_update(RF::dvec2 position)
+{
+	RF::dvec2 diff = this->mouse_position_ - position;
+	this->mouse_position_ = position;
+	
+	if (this->mouse_key_event_callback_)
+	{ this->mouse_move_callback_(this, position, diff); }
 }
 
 void RF::cocoa_window::set_size(RF::uivec2 size)
