@@ -66,14 +66,14 @@ namespace RF
 		RF::window_info info_;
 		RF::window_state_t state_;
 
-		RF::dvec2 mouse_position_;
+		RF::uivec2 mouse_position_;
 
 		std::function<void(RF::window *)> close_callback_;
 		std::function<void(RF::window *, RF::window_state_t)> state_changed_callback_;
 
 		std::function<void(RF::window *, RF::virtual_key_t, RF::key_state_t)> virtual_key_event_callback_;
 		std::function<void(RF::window *, RF::mouse_key_t, RF::key_state_t)> mouse_key_event_callback_;
-		std::function<void(RF::window *, RF::dvec2, RF::dvec2)> mouse_move_callback_;
+		std::function<void(RF::window *, RF::uivec2, RF::ivec2)> mouse_move_callback_;
 
 		std::unordered_map<RF::virtual_key_t, RF::key_state_t> virtual_key_states_;
 		std::unordered_map<RF::mouse_key_t, RF::key_state_t> mouse_key_states_;
@@ -101,7 +101,7 @@ namespace RF
 		inline void set_mouse_key_event_callback(std::function<void(RF::window *, RF::mouse_key_t, RF::key_state_t)> callback)
 		{ this->mouse_key_event_callback_ = callback; }
 
-		inline void set_mouse_move_callback(std::function<void(RF::window *, RF::dvec2, RF::dvec2)> callback)
+		inline void set_mouse_move_callback(std::function<void(RF::window *, RF::uivec2, RF::ivec2)> callback)
 		{ this->mouse_move_callback_ = callback; }
 
 		// virtual
@@ -120,8 +120,8 @@ namespace RF
 		RF::key_state_t get_key_state(RF::mouse_key_t key) const;
 
 		// ---- Flag API ----
-		virtual void set_flag(RF::window_flag_bit_t flag, bool enabled) = 0;
-		virtual bool get_flag(RF::window_flag_bit_t flag) const;
+		// virtual void set_flag(RF::window_flag_bit_t flag, bool enabled) = 0;
+		// virtual bool get_flag(RF::window_flag_bit_t flag) const;
 	};
 } // namespace RF
 

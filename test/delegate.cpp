@@ -17,7 +17,7 @@ struct
 		RF::delegate_info delegate_info
 		{
 			.name = "RedFox Delegate",
-			.framework = RF::framework_t::Cocoa
+			.framework = RF::framework_t::Win32
 		};
 
 		this->delegate = RF::delegate::create(delegate_info);
@@ -100,12 +100,12 @@ int main()
 	});
 	
 	game_process.main_window->set_mouse_move_callback(
-	[](RF::window *window, RF::dvec2 position, RF::dvec2 difference) -> void
+	[](RF::window *window, RF::uivec2 position, RF::ivec2 difference) -> void
 	{
 		RF::logf::info(
 			"mouse moved difference: <0>:<1>",
-			RF::double_to_string(difference.x, 2),
-			RF::double_to_string(difference.y, 2)
+			difference.x,
+			difference.y
 		);
 	});
 	
