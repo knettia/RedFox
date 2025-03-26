@@ -376,7 +376,7 @@ void RF::win32_window::handle_mouse_key_up(RF::mouse_key_t key)
 
 void RF::win32_window::handle_mouse_update(RF::uivec2 position)
 {
-	RF::ivec2 diff = RF::ivec2(this->mouse_position_.x, this->mouse_position_.y) - position;
+	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
 	this->mouse_position_ = position;
 	
 	if (this->mouse_key_event_callback_)
