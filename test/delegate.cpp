@@ -99,6 +99,16 @@ int main()
 		}
 	});
 	
+	game_process.main_window->set_mouse_move_callback(
+	[](RF::window *window, RF::dvec2 position, RF::dvec2 difference) -> void
+	{
+		RF::logf::info(
+			"mouse moved difference: <0>:<1>",
+			RF::double_to_string(difference.x, 2),
+			RF::double_to_string(difference.y, 2)
+		);
+	});
+	
 	while (game_process.running)
 	{ game_process.delegate->poll_events(); }
 
