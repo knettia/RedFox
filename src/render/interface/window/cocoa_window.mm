@@ -412,7 +412,7 @@ void RF::cocoa_window::handle_mouse_update(RF::uivec2 position)
 	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
 	this->mouse_position_ = position;
 	
-	if (this->mouse_key_event_callback_)
+	if (this->mouse_move_callback_)
 	{ this->mouse_move_callback_(this, position, diff); }
 }
 
