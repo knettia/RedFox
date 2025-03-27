@@ -30,11 +30,15 @@ namespace RF
 		cocoa_view_m *view_m_;
 
 		CAMetalLayer *metal_layer_;
+
+		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
 	public:
 		~cocoa_window() override;
 		cocoa_window(RF::window_info info);
 
 		void cocoa_call_close_callback(); // HACK: find better way to fix
+		void cocoa_centre_mouse();
+
 		void update_window_state(RF::window_state_t state);
 		
 		void handle_virtual_key_down(RF::virtual_key_t key);
@@ -43,7 +47,7 @@ namespace RF
 		void handle_mouse_key_down(RF::mouse_key_t key);
 		void handle_mouse_key_up(RF::mouse_key_t key);
 
-		void handle_mouse_update(RF::uivec2 position);
+		void handle_mouse_update(RF::uivec2 position, RF::ivec2 difference);
 
 		vk::ResultValue<vk::SurfaceKHR> create_surface(vk::Instance instance, const vk::AllocationCallbacks *allocator) override;
 

@@ -1,3 +1,19 @@
+// monitor.hpp
+#pragma once
+
+#include "RedFox/core/types/vector/vec2.hpp" // RF::uivec2
+#include <string>
+
+namespace RF
+{
+	struct monitor_data
+	{
+		std::string name;
+		RF::uivec2 resolution;
+		uint16_t refresh_rate;
+	};
+} // namespace RF
+
 #import "./cocoa_window.hpp" // header
 #import "RF/interface/virtual_key.hpp"
 #import "RF/log.hpp" // RF::logf::
@@ -123,6 +139,35 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 	}
 }
 @end
+
+// internal cocoa_responder
+@implementation cocoa_responder_m
+- (void) set_window:(RF::cocoa_window *) window
+{
+	if (self)
+	{ self.window_ = window; }
+}
+
+// - (void) keyDown:(NSEvent *) event
+// {
+// 	if (self.window_)
+// 	{
+// 		std::optional<RF::virtual_key_t> keyopt = RF::cocoa_key_map[event.keyCode];
+// 		if (keyopt.has_value())
+// 		{ self.window_->handle_virtual_key_down(keyopt.value()); }
+// 	}
+// }
+
+// - (void) keyUp:(NSEvent *) event
+// {
+// 	if (self.window_)
+// 	{
+// 		std::optional<RF::virtual_key_t> keyopt = RF::cocoa_key_map[event.keyCode];
+// 		if (keyopt.has_value())
+// 		{ self.window_->handle_virtual_key_up(keyopt.value()); }
+// 	}
+// }
+@end
 // cocoa_responder
 
 // internal cocoa_window_m
@@ -143,7 +188,14 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 - (void) windowDidBecomeKey:(NSNotification *) notification
 {
 	if (self.window_)
-	{ self.window_->update_window_state(RF::window_state_t::Focused); }
+	{
+		self.window_->update_window_state(RF::window_state_t::Focused);
+
+		if (self.window_->get_flag(RF::window_flag_bit_t::MouseLocked))
+		{
+			self.window_->cocoa_centre_mouse();
+		}
+	}
 }
 
 - (void) windowDidResignKey:(NSNotification *) notification
@@ -285,6 +337,25 @@ void RF::cocoa_window::cocoa_call_close_callback()
 	{ this->close_callback_(this); }
 }
 
+void RF::cocoa_window::cocoa_centre_mouse()
+{
+	NSRect window_frame = [this->ns_window_ frame];
+	NSRect screen_frame = [[this->ns_window_ screen] frame];
+	CGRect window_bounds = CGRectMake(
+		window_frame.origin.x,
+		screen_frame.size.height - window_frame.origin.y - window_frame.size.height,
+		window_frame.size.width,
+		window_frame.size.height
+	);
+
+	NSScreen *screen = [this->ns_window_ screen];
+	NSDictionary *screenDictionary = [screen deviceDescription];
+	NSNumber *screenID = [screenDictionary objectForKey:@"NSScreenNumber"];
+
+	// TODO: fix this to properly centre on display other than the main one
+	CGDisplayMoveCursorToPoint([screenID unsignedIntValue], CGPointMake(CGRectGetMidX(window_bounds), CGRectGetMidY(window_bounds)));
+}
+
 void RF::cocoa_window::update_window_state(RF::window_state_t new_state)
 {
 	if (this->state_ != new_state)
@@ -401,12 +472,82 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 	}
 }
 
-void RF::cocoa_window::handle_mouse_update(RF::uivec2 position, RF::ivec2 diff)
+void RF::cocoa_window::handle_mouse_update(RF::uivec2 position, RF::ivec2 difference)
 {
 	this->mouse_position_ = position;
 	
 	if (this->mouse_move_callback_)
-	{ this->mouse_move_callback_(this, position, diff); }
+	{ this->mouse_move_callback_(this, this->mouse_position_, difference); }
+}
+
+void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool enabled)
+{
+	#define RF_case_flag_bit(flag) if ((flags & flag) != RF::window_flag_bit_t::None) \
+
+	RF_case_flag_bit(RF::window_flag_bit_t::MouseLocked)
+	{
+		if (enabled)
+		{
+			this->cocoa_centre_mouse();
+			CGAssociateMouseAndMouseCursorPosition(false);
+		}
+		else
+		{
+			CGAssociateMouseAndMouseCursorPosition(true);
+		}
+	}
+
+	RF_case_flag_bit(RF::window_flag_bit_t::MouseHidden)
+	{
+		if (enabled)
+		{
+			CGDisplayHideCursor(CGMainDisplayID());
+		}
+		else
+		{
+			CGDisplayShowCursor(CGMainDisplayID());
+		}
+	}
+	
+	RF_case_flag_bit(RF::window_flag_bit_t::Fullscreen)
+	{
+		NSWindowCollectionBehavior behavior = [this->ns_window_ collectionBehavior];
+		behavior |= NSWindowCollectionBehaviorFullScreenPrimary;
+		[this->ns_window_ setCollectionBehavior:behavior];
+
+		if (enabled)
+		{
+			if (!(this->ns_window_.styleMask & NSWindowStyleMaskFullSizeContentView))
+			{
+				[this->ns_window_ toggleFullScreen:nil];
+			}
+		}
+		else
+		{
+			if ((this->ns_window_.styleMask & NSWindowStyleMaskFullSizeContentView))
+			{
+				[this->ns_window_ toggleFullScreen:nil];
+			}
+		}
+
+		behavior = [this->ns_window_ collectionBehavior];
+		behavior &= ~NSWindowCollectionBehaviorFullScreenPrimary;
+		[this->ns_window_ setCollectionBehavior:behavior];
+	}
+
+	RF_case_flag_bit(RF::window_flag_bit_t::Borderless)
+	{
+		if (enabled)
+		{
+	
+		}
+		else
+		{
+	
+		}
+	}
+
+	#undef RF_case_flag_bit
 }
 
 void RF::cocoa_window::set_size(RF::uivec2 size)
