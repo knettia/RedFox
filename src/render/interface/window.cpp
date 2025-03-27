@@ -53,33 +53,33 @@ bool RF::window::get_flag(RF::window_flag_bit_t flag) const
 	return (this->flags_ & flag) != RF::window_flag_bit_t::None;
 }
 
-RF::window_flag_bit_t operator|(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+RF::window_flag_bit_t RF::operator|(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
 {
 	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) | static_cast<std::uint32_t>(flag_b));
 }
 
-RF::window_flag_bit_t operator&(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+RF::window_flag_bit_t RF::operator&(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
 {
 	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) & static_cast<std::uint32_t>(flag_b));
 }
 
-RF::window_flag_bit_t operator^(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+RF::window_flag_bit_t RF::operator^(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
 {
 	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) ^ static_cast<std::uint32_t>(flag_b));
 }
 
-RF::window_flag_bit_t operator~(RF::window_flag_bit_t flag)
+RF::window_flag_bit_t RF::operator~(RF::window_flag_bit_t flag)
 {
 	return static_cast<RF::window_flag_bit_t>(~static_cast<std::uint32_t>(flag));
 }
 
-RF::window_flag_bit_t &operator|=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
+RF::window_flag_bit_t &RF::operator|=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
 {
 	flag_a = static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) | static_cast<std::uint32_t>(flag_b));
 	return flag_a;
 }
 
-RF::window_flag_bit_t &operator&=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
+RF::window_flag_bit_t &RF::operator&=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
 {
 	flag_a = static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) & static_cast<std::uint32_t>(flag_b));
 	return flag_a;
