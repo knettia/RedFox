@@ -256,12 +256,6 @@ void RF::cocoa_window::close()
 			this->ns_window_ = nil;
 		}
 
-		if (this->responder_m_)
-		{
-			[this->responder_m_ release];
-			this->responder_m_ = nil;
-		}
-
 		if (this->view_m_)
 		{
 			[this->view_m_ release];
