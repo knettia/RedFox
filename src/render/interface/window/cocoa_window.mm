@@ -428,7 +428,7 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 {
 	#define RF_case_flag_bit(flag) if ((flags & flag) != RF::window_flag_bit_t::None) \
 
-	RF_case_flag_bit(RF::window_flag_bit_t::MouseLocked)
+	RF_case_flag_bit(RF::window_flag_bit_t::CursorLocked)
 	{
 		if (enabled)
 		{
@@ -441,7 +441,7 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 		}
 	}
 
-	RF_case_flag_bit(RF::window_flag_bit_t::MouseHidden)
+	RF_case_flag_bit(RF::window_flag_bit_t::CursorHidden)
 	{
 		if (enabled)
 		{

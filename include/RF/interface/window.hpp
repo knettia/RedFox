@@ -55,8 +55,8 @@ namespace RF
 		None         = 0x0,
 
 		// Mouse flags
-		MouseLocked  = 0x1 << 0,
-		MouseHidden  = 0x1 << 1,
+		CursorLocked  = 0x1 << 0,
+		CursorHidden  = 0x1 << 1,
 
 		// Style flags
 		Fullscreen   = 0x1 << 2,

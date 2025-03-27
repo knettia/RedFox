@@ -167,7 +167,7 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 		// Whenever we reenter the window, for some reason...
 		if (new_state == RF::window_state_t::Focused)
 		{
-			if (this->get_flag(RF::window_flag_bit_t::MouseLocked))
+			if (this->get_flag(RF::window_flag_bit_t::CursorLocked))
 			{
 				this->lock_cursor_();
 			}
@@ -406,7 +406,7 @@ void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 {
 	#define RF_case_flag_bit(flag) if ((flags & flag) != RF::window_flag_bit_t::None) \
 
-	RF_case_flag_bit(RF::window_flag_bit_t::MouseLocked)
+	RF_case_flag_bit(RF::window_flag_bit_t::CursorLocked)
 	{
 		if (enabled)
 		{
@@ -418,7 +418,7 @@ void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 		}
 	}
 
-	RF_case_flag_bit(RF::window_flag_bit_t::MouseHidden)
+	RF_case_flag_bit(RF::window_flag_bit_t::CursorHidden)
 	{
 		if (enabled)
 		{
