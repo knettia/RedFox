@@ -67,6 +67,13 @@ namespace RF
 		Borderless   = 0x1 << 3,
 	};
 
+	RF::window_flag_bit_t operator|(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b);
+	RF::window_flag_bit_t operator&(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b);
+	RF::window_flag_bit_t operator^(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b);
+	RF::window_flag_bit_t &operator|=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b);
+	RF::window_flag_bit_t &operator&=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b);
+	RF::window_flag_bit_t operator~(RF::window_flag_bit_t flag);
+
 	class window
 	{
 	protected:
@@ -135,36 +142,3 @@ namespace RF
 		bool get_flag(RF::window_flag_bit_t flag) const;
 	};
 } // namespace RF
-
-// TODO: turn this 
-inline RF::window_flag_bit_t operator|(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
-{
-	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) | static_cast<std::uint32_t>(flag_b));
-}
-
-inline RF::window_flag_bit_t operator&(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
-{
-	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) & static_cast<std::uint32_t>(flag_b));
-}
-
-inline RF::window_flag_bit_t operator^(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
-{
-	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) ^ static_cast<std::uint32_t>(flag_b));
-}
-
-inline RF::window_flag_bit_t operator~(RF::window_flag_bit_t flag)
-{
-	return static_cast<RF::window_flag_bit_t>(~static_cast<std::uint32_t>(flag));
-}
-
-inline RF::window_flag_bit_t &operator|=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
-{
-	flag_a = flag_a | flag_b;
-	return flag_a;
-}
-
-inline RF::window_flag_bit_t &operator&=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
-{
-	flag_a = flag_a & flag_b;
-	return flag_a;
-}

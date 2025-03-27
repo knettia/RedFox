@@ -14,7 +14,7 @@ RF::window::window(RF::window_info info)
 			key_states[key] = RF::key_state_t::Inactive;
 		}
 	};
-	
+
 	initialize_keys(RF::virtual_key_t{}, RF::virtual_key_t::_Count, this->virtual_key_states_);
 	initialize_keys(RF::mouse_key_t{}, RF::mouse_key_t::_Count, this->mouse_key_states_);
 }
@@ -51,4 +51,36 @@ void RF::window::set_flag(RF::window_flag_bit_t flags, bool enabled)
 bool RF::window::get_flag(RF::window_flag_bit_t flag) const
 {
 	return (this->flags_ & flag) != RF::window_flag_bit_t::None;
+}
+
+RF::window_flag_bit_t operator|(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+{
+	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) | static_cast<std::uint32_t>(flag_b));
+}
+
+RF::window_flag_bit_t operator&(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+{
+	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) & static_cast<std::uint32_t>(flag_b));
+}
+
+RF::window_flag_bit_t operator^(RF::window_flag_bit_t flag_a, RF::window_flag_bit_t flag_b)
+{
+	return static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) ^ static_cast<std::uint32_t>(flag_b));
+}
+
+RF::window_flag_bit_t operator~(RF::window_flag_bit_t flag)
+{
+	return static_cast<RF::window_flag_bit_t>(~static_cast<std::uint32_t>(flag));
+}
+
+RF::window_flag_bit_t &operator|=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
+{
+	flag_a = static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) | static_cast<std::uint32_t>(flag_b));
+	return flag_a;
+}
+
+RF::window_flag_bit_t &operator&=(RF::window_flag_bit_t &flag_a, RF::window_flag_bit_t flag_b)
+{
+	flag_a = static_cast<RF::window_flag_bit_t>(static_cast<std::uint32_t>(flag_a) & static_cast<std::uint32_t>(flag_b));
+	return flag_a;
 }
