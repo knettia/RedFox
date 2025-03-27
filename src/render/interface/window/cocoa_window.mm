@@ -1,19 +1,3 @@
-// monitor.hpp
-#pragma once
-
-#include "RedFox/core/types/vector/vec2.hpp" // RF::uivec2
-#include <string>
-
-namespace RF
-{
-	struct monitor_data
-	{
-		std::string name;
-		RF::uivec2 resolution;
-		uint16_t refresh_rate;
-	};
-} // namespace RF
-
 #import "./cocoa_window.hpp" // header
 #import "RF/interface/virtual_key.hpp"
 #import "RF/log.hpp" // RF::logf::
