@@ -1,8 +1,7 @@
 #include "./win32_window.hpp" // header
-#include <stdexcept>
 #include <windows.h>
 
-#include "RF/log.hpp"
+#define RF_WINDOWSTYLE (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX)
 
 // internal
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -126,11 +125,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				UINT button = GET_XBUTTON_WPARAM(wParam);
 				if (button == XBUTTON1)
 				{
-				window->handle_mouse_key_up(RF::mouse_key_t::X1);
+					window->handle_mouse_key_up(RF::mouse_key_t::X1);
 				}
 				else if (button == XBUTTON2)
 				{
-				window->handle_mouse_key_up(RF::mouse_key_t::X2);
+					window->handle_mouse_key_up(RF::mouse_key_t::X2);
 				}
 			}
 			break;
@@ -196,18 +195,32 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 		this->state_ = new_state;
 		if (this->state_changed_callback_)
 		{ this->state_changed_callback_(this, new_state); }
+
+		// To not HACK our way by moving the cursor at the middle of the window,
+		// Each time the window gets focused we reclip the cursor, which resets
+		// Whenever we reenter the window, for some reason...
+		if (new_state == RF::window_state_t::Focused)
+		{
+			if (this->get_flag(RF::window_flag_bit_t::MouseLocked))
+			{
+				this->lock_cursor_();
+			}
+		}
 	}
+
 }
+
+#include "RF/exception.hpp"
 
 // RF::win32_window implementation:
 RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
 {
-	// create window 
+	// create window
 	this->handle_window_ = CreateWindowEx(
 		0,
 		"RedFox Win32 Delegate",
-		this->info_.title.c_str(),
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+		this->info_.title.data(),
+		RF_WINDOWSTYLE,
 
 		0, 0, 0, 0,
 
@@ -218,19 +231,19 @@ RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
 	);
 
 	if (!this->handle_window_)
-	{ throw std::runtime_error("failed to create win32 window"); }
+	{ throw RF::engine_error("Failed to create Win32 window '<0>'", this->info_.title.data()); }
 
 	SetWindowLongPtr(this->handle_window_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 	SetWindowLongPtr(this->handle_window_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WindowProc));
 
 	// align window
-	int x = (GetSystemMetrics(SM_CXSCREEN) - this->info_.size.x) / 2;
-	int y = (GetSystemMetrics(SM_CYSCREEN) - this->info_.size.y) / 2;
-	SetWindowPos(this->handle_window_, nullptr, x, y, this->info_.size.x, this->info_.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
+	this->align_window_();
 
 	// show window
 	ShowWindow(this->handle_window_, SW_SHOW);
-	// HACK: to not show loading hourglass, change the cursor itself  back to arrow
+
+	// HACK: To not show loading hourglass,
+	//       Change the cursor itself back to arrow
 	SetCursor(LoadCursor(nullptr, IDC_ARROW));
 }
 
@@ -264,9 +277,9 @@ vk::ResultValue<vk::SurfaceKHR> RF::win32_window::create_surface(vk::Instance in
 
 	VkSurfaceKHR raw_surface;
 	vk::Result result = static_cast<vk::Result>(vk_create_win32_surface_khr(
-		static_cast<VkInstance>(instance), 
-		&sci, 
-		reinterpret_cast<const VkAllocationCallbacks*>(allocator), 
+		static_cast<VkInstance>(instance),
+		&sci,
+		reinterpret_cast<const VkAllocationCallbacks*>(allocator),
 		&raw_surface
 	));
 
@@ -378,7 +391,7 @@ void RF::win32_window::handle_mouse_update(RF::uivec2 position)
 {
 	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
 	this->mouse_position_ = position;
-	
+
 	if (this->mouse_move_callback_)
 	{ this->mouse_move_callback_(this, position, diff); }
 }
@@ -393,10 +406,98 @@ void RF::win32_window::minimise()
 	ShowWindow(this->handle_window_, SW_MINIMIZE);
 }
 
+void RF::win32_window::lock_cursor_()
+{
+	RECT rect;
+	if (GetClientRect(this->handle_window_, &rect))
+	{
+		POINT top_left { rect.left, rect.top };
+		ClientToScreen(this->handle_window_, &top_left);
+
+		int x = top_left.x + (rect.right - rect.left) / 2;
+		int y = top_left.y + (rect.bottom - rect.top) / 2;
+
+		RECT clipRect
+		{
+			.left = x,
+			.top = y,
+			.right = x,
+			.bottom = y
+		};
+
+		ClipCursor(&clipRect);
+	}
+}
+
+void RF::win32_window::align_window_()
+{
+	int x = (GetSystemMetrics(SM_CXSCREEN) - this->info_.size.x) / 2;
+	int y = (GetSystemMetrics(SM_CYSCREEN) - this->info_.size.y) / 2;
+	SetWindowPos(this->handle_window_, nullptr, x, y, this->info_.size.x, this->info_.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
+void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool enabled)
+{
+	#define RF_case_flag_bit(flag) if ((flags & flag) != RF::window_flag_bit_t::None) \
+
+	RF_case_flag_bit(RF::window_flag_bit_t::MouseLocked)
+	{
+		if (enabled)
+		{
+			this->lock_cursor_();
+		}
+		else
+		{
+			ClipCursor(NULL);
+		}
+	}
+
+	RF_case_flag_bit(RF::window_flag_bit_t::MouseHidden)
+	{
+		if (enabled)
+		{
+			ShowCursor(FALSE);
+		}
+		else
+		{
+			ShowCursor(TRUE);
+		}
+	}
+
+	// TODO: implement proper fullscreen by changing video mode
+	RF_case_flag_bit(RF::window_flag_bit_t::Fullscreen)
+	{
+		if (enabled)
+		{
+			
+		}
+		else
+		{
+			
+		}
+	}
+	
+	RF_case_flag_bit(RF::window_flag_bit_t::Borderless)
+	{
+		LONG style = GetWindowLong(this->handle_window_, GWL_STYLE);
+
+		if (enabled)
+		{
+			SetWindowLong(this->handle_window_, GWL_STYLE, style & ~RF_WINDOWSTYLE);
+		}
+		else
+		{
+			SetWindowLong(this->handle_window_, GWL_STYLE, style | RF_WINDOWSTYLE);
+		}
+	}
+
+	#undef RF_case_flag_bit
+}
+
 void RF::win32_window::set_size(RF::uivec2 size)
 {
 	RECT rect;
 	GetWindowRect(this->handle_window_, &rect);
-	SetWindowPos(this->handle_window_, NULL, rect.left, rect.top, size.x, size.y, SWP_NOZORDER | SWP_NOACTIVATE);	
+	SetWindowPos(this->handle_window_, NULL, rect.left, rect.top, size.x, size.y, SWP_NOZORDER | SWP_NOACTIVATE);
 	this->info_.size = size;
 }
