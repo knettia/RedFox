@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <windows.h>
 
-#include "RF/interface/virtual_key.hpp"
 #include "RF/log.hpp"
 
 // internal

@@ -1,5 +1,4 @@
 #include "RF/interface/window.hpp"
-#include "RF/interface/virtual_key.hpp"
 
 RF::window::window(RF::window_info info)
 :

@@ -1,6 +1,9 @@
 #pragma once
+
 // RedFox
 #include "RF/vec2.hpp" // RF::uivec2
+#include "RF/interface/graphics.hpp"
+#include "RF/interface/virtual_key.hpp"
 
 namespace vk
 {
@@ -18,13 +21,6 @@ namespace vk
 
 namespace RF
 {
-	// forward declared
-	enum class virtual_key_t;
-	enum class mouse_key_t; 
-	enum class key_state_t;
-
-	enum class graphics_t;
-
 	struct window_info
 	{
 		std::string title;

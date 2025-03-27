@@ -1,5 +1,4 @@
 #import "./cocoa_window.hpp" // header
-#import "RF/interface/virtual_key.hpp"
 #import "RF/log.hpp" // RF::logf::
 
 @implementation cocoa_view_m
