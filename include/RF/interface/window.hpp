@@ -56,8 +56,15 @@ namespace RF
 
 	enum class window_flag_bit_t : std::uint32_t
 	{
-		locked_mouse  = 0x01,
-		free_resizing = 0x02,
+		None         = 0x0,
+
+		// Mouse flags
+		MouseLocked  = 0x1 << 0,
+		MouseHidden  = 0x1 << 1,
+
+		// Style flags
+		Fullscreen   = 0x1 << 2,
+		Borderless   = 0x1 << 3,
 	};
 
 	class window
@@ -77,6 +84,10 @@ namespace RF
 
 		std::unordered_map<RF::virtual_key_t, RF::key_state_t> virtual_key_states_;
 		std::unordered_map<RF::mouse_key_t, RF::key_state_t> mouse_key_states_;
+
+		RF::window_flag_bit_t flags_;
+
+		virtual void handle_flag_update_(RF::window_flag_bit_t flags, bool enabled) = 0;
 	public:
 		// move/copy instructions:
                 window(const window &) = delete;
@@ -120,8 +131,8 @@ namespace RF
 		RF::key_state_t get_key_state(RF::mouse_key_t key) const;
 
 		// ---- Flag API ----
-		// virtual void set_flag(RF::window_flag_bit_t flag, bool enabled) = 0;
-		// virtual bool get_flag(RF::window_flag_bit_t flag) const;
+		void set_flag(RF::window_flag_bit_t flag, bool enabled);
+		bool get_flag(RF::window_flag_bit_t flag) const;
 	};
 } // namespace RF
 

@@ -1,7 +1,10 @@
 #include "RF/interface/window.hpp"
 #include "RF/interface/virtual_key.hpp"
 
-RF::window::window(RF::window_info info) : info_(std::move(info)), state_(RF::window_state_t::Focused)
+RF::window::window(RF::window_info info)
+:
+	info_(std::move(info)), state_(RF::window_state_t::Focused),
+	mouse_position_(0, 0), flags_(RF::window_flag_bit_t::None)
 {
 	auto initialize_keys = [this](auto key_enum, auto count_elem, auto& key_states)
 	{
@@ -29,4 +32,23 @@ RF::key_state_t RF::window::get_key_state(RF::virtual_key_t key) const
 	if (it == this->virtual_key_states_.end())
 	{ throw std::runtime_error("fatal error, RF::virtual_key_t not found in key states umap"); }
 	return it->second;
+}
+
+void RF::window::set_flag(RF::window_flag_bit_t flags, bool enabled)
+{
+	if (enabled)
+	{
+		this->flags_ |= flags;
+	}
+	else
+	{
+		this->flags_ &= ~flags;
+	}
+
+	this->handle_flag_update_(flags, enabled);
+}
+
+bool RF::window::get_flag(RF::window_flag_bit_t flag) const
+{
+	return (this->flags_ & flag) != RF::window_flag_bit_t::None;
 }
