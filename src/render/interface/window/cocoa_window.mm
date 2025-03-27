@@ -90,23 +90,17 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 	if (self.window_)
 	{
 		RF::uivec2 size = self.window_->get_info().size;
-		
-		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.x, 0.0, static_cast<double>(size.x)));
-		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.y, 0.0, static_cast<double>(size.y)));
+
+		CGFloat delta_x = event.deltaX;
+		CGFloat delta_y = event.deltaY;
+
+		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(std::ceil(delta_x), 0.0, static_cast<double>(size.x)));
+		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(std::ceil(delta_y), 0.0, static_cast<double>(size.y)));
 
 		y = size.y - y;
 
-		self.window_->handle_mouse_update(RF::uivec2(x, y));
+		self.window_->handle_mouse_update(RF::uivec2(x, y), RF::ivec2(delta_x, delta_y));
 	}
-}
-@end
-
-// internal cocoa_responder
-@implementation cocoa_responder_m
-- (void) set_window:(RF::cocoa_window *) window
-{
-	if (self)
-	{ self.window_ = window; }
 }
 
 - (void) keyDown:(NSEvent *) event
@@ -407,9 +401,8 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 	}
 }
 
-void RF::cocoa_window::handle_mouse_update(RF::uivec2 position)
+void RF::cocoa_window::handle_mouse_update(RF::uivec2 position, RF::ivec2 diff)
 {
-	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
 	this->mouse_position_ = position;
 	
 	if (this->mouse_move_callback_)
