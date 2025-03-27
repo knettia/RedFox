@@ -124,36 +124,6 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 }
 @end
 
-// internal cocoa_responder
-@implementation cocoa_responder_m
-- (void) set_window:(RF::cocoa_window *) window
-{
-	if (self)
-	{ self.window_ = window; }
-}
-
-// - (void) keyDown:(NSEvent *) event
-// {
-// 	if (self.window_)
-// 	{
-// 		std::optional<RF::virtual_key_t> keyopt = RF::cocoa_key_map[event.keyCode];
-// 		if (keyopt.has_value())
-// 		{ self.window_->handle_virtual_key_down(keyopt.value()); }
-// 	}
-// }
-
-// - (void) keyUp:(NSEvent *) event
-// {
-// 	if (self.window_)
-// 	{
-// 		std::optional<RF::virtual_key_t> keyopt = RF::cocoa_key_map[event.keyCode];
-// 		if (keyopt.has_value())
-// 		{ self.window_->handle_virtual_key_up(keyopt.value()); }
-// 	}
-// }
-@end
-// cocoa_responder
-
 // internal cocoa_window_m
 @implementation cocoa_window_m
 - (void) set_window:(RF::cocoa_window *) window
@@ -221,14 +191,11 @@ RF::cocoa_window::cocoa_window(RF::window_info info) : RF::window(info)
 
 		this->view_m_ = [[cocoa_view_m alloc] initWithFrame:rect];
 		[this->view_m_ set_window:this];
+		[this->ns_window_ makeFirstResponder:this->view_m_];
 		[this->ns_window_ setContentView:this->view_m_];
 
 		[this->ns_window_ center];
 		[this->ns_window_ makeKeyAndOrderFront:this->window_m_];
-
-		this->responder_m_ = [cocoa_responder_m alloc];
-		[this->responder_m_ set_window:this];
-		[this->ns_window_ makeFirstResponder:this->responder_m_];
 	}
 }
 
