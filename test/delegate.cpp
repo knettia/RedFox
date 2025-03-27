@@ -3,8 +3,19 @@
 #include "RF/interface/framework.hpp"
 #include "RF/interface/virtual_key.hpp"
 #include <RF/interface/delegate.hpp>
+
+#include <RF/definitions.hpp>
 #include <RF/monitor.hpp>
 #include <RF/log.hpp>
+
+RF::framework_t choose_framework()
+{
+#if defined (__DARWIN__)
+	return RF::framework_t::Cocoa;
+#elif defined (__WINDOWS__)
+	return RF::framework_t::Win32;
+#endif
+}
 
 struct
 {
@@ -17,7 +28,7 @@ struct
 		RF::delegate_info delegate_info
 		{
 			.name = "RedFox Delegate",
-			.framework = RF::framework_t::Win32
+			.framework = choose_framework()
 		};
 
 		this->delegate = RF::delegate::create(delegate_info);
