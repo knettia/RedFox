@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RF/interface/video_mode.hpp"
 #include "RF/interface/window.hpp"
 
 #include <string>
@@ -21,6 +22,8 @@ namespace RF
 	private:
 		inline static bool created_;
 	protected:
+		const RF::video_mode_t neutral_video_mode_;
+
 		RF::delegate_info info_;
 		std::function<void()> terminate_callback_;
 	public:
