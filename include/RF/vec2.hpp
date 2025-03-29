@@ -63,6 +63,30 @@ namespace RF
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator=(const vec<2, T> &v) const
+		{
+			return vec<2, A>(static_cast<A>(v.x), static_cast<A>(v.y));
+		}
+
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator=(const T &a) const
+		{
+			return vec<2, A>(static_cast<A>(a), static_cast<A>(a));
+		}
+
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator==(const vec<2, T> &v) const
+		{
+			return (x == v.x) && (y == v.y);
+		}
+
+		template<typename T, RF_arithmetic_template(T)>
+		constexpr vec<2, A> operator==(const T &a) const
+		{
+			return (x == a) && (y == a);
+		}
+
+		template<typename T, RF_arithmetic_template(T)>
 		constexpr vec<2, A> operator/(const T s) const
 		{
 			return vec<2, A>(x / s, y / s);
