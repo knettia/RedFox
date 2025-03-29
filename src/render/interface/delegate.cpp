@@ -9,7 +9,7 @@
 #include "RF/exception.hpp"
 #include "RF/string.hpp"
 
-RF::delegate::delegate(RF::delegate_info info) : info_(info), neutral_video_mode_(RF::get_current_video_mode())
+RF::delegate::delegate(RF::delegate_info info, const RF::video_mode_t mode) : info_(info), video_mode_(mode)
 {
 	if (created_)
 	{ throw RF::engine_error("Internal inconsistency: multiple instances of RF::delegate are not allowed"); }

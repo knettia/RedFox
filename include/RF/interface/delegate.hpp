@@ -22,7 +22,7 @@ namespace RF
 	private:
 		inline static bool created_;
 	protected:
-		const RF::video_mode_t neutral_video_mode_;
+		const RF::video_mode_t video_mode_;
 
 		RF::delegate_info info_;
 		std::function<void()> terminate_callback_;
@@ -34,12 +34,18 @@ namespace RF
 
 		// constructor/destructor instructions:
 		virtual ~delegate();
-                delegate(RF::delegate_info info);
+                delegate(RF::delegate_info info, const RF::video_mode_t mode);
 
 		// static polymorphic create:
 		static RF::delegate *create(RF::delegate_info info);
 
 		// ---- Video Mode API ----
+		/**
+		 * Returns the default video mode of the delegate
+		 */
+		inline RF::video_mode_t video_mode()
+		{ return this->video_mode_; }
+
 		/**
 		 * Returns the current video mode of the main display
 		 */
