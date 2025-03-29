@@ -28,6 +28,12 @@ RF::reference_ptr<T>::operator T *() const noexcept
 }
 
 template<typename T>
+T *RF::reference_ptr<T>::ptr_get() const noexcept
+{
+	return ptr_;
+}
+
+template<typename T>
 bool RF::reference_ptr<T>::valid() const noexcept
 {
 	return ptr_ != nullptr;

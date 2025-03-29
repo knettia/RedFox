@@ -23,6 +23,8 @@ namespace RF
 		T &operator*() const noexcept;
 		T *operator->() const noexcept;
 		operator T*() const noexcept;
+
+		T *ptr_get() const noexcept;
 		bool valid() const noexcept;
 	};
 }
