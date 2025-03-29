@@ -172,7 +172,7 @@ void RF::cocoa_delegate::terminate()
 	}
 }
 
-RF::cocoa_delegate::cocoa_delegate(RF::delegate_info info) : RF::delegate(info)
+RF::cocoa_delegate::cocoa_delegate(RF::delegate_info info) : RF::delegate(info, this->current_video_mode())
 {
 	@autoreleasepool
 	{
