@@ -39,6 +39,13 @@ namespace RF
 		// static polymorphic create:
 		static RF::delegate *create(RF::delegate_info info);
 
+		// ---- Video Mode API ---- 
+		inline RF::video_mode_t video_mode()
+		{ return this->neutral_video_mode_; }
+
+		virtual RF::video_mode_t current_video_mode() = 0;
+		virtual std::vector<RF::video_mode_t> enumerate_video_modes() = 0;
+
 		// callbacks: 
 		inline void set_terminate_callback(std::function<void()> callback)
 		{ this->terminate_callback_ = callback; }

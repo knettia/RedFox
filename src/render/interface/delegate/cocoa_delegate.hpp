@@ -23,6 +23,11 @@ namespace RF
 		~cocoa_delegate();
 		cocoa_delegate(RF::delegate_info info);
 
+		RF::video_mode_t current_video_mode() override;
+		std::vector<RF::video_mode_t> enumerate_video_modes() override;
+
+		CGDisplayMode *to_native_video_mode_cocoa(RF::video_mode_t mode);
+
 		void terminate() override;
 		void poll_events() override;
 		char32_t to_keysym(RF::virtual_key_t) override;

@@ -1,4 +1,5 @@
 #import "./cocoa_delegate.hpp"
+#include "RF/exception.hpp"
 
 // internal cocoa manager
 @implementation cocoa_delegate_m
@@ -20,6 +21,101 @@
 }
 @end
 // cocoa_delegate_m
+
+// ---- Video Mode ----
+RF::video_mode_t RF::cocoa_delegate::current_video_mode()
+{
+	@autoreleasepool
+	{
+
+	// FIXME: For now, this supports only the root display
+	//        But in the future, we want to implement a struct
+	//        Called RF::display_t to representent different displays
+	CGDisplayMode *native = CGDisplayCopyDisplayMode(CGMainDisplayID());
+
+	RF::video_mode_t mode
+	{
+		{ CGDisplayModeGetWidth(native), CGDisplayModeGetHeight(native) },
+		CGDisplayModeGetRefreshRate(native)
+	};
+
+	CFRelease(native);
+
+	return mode;
+
+	}
+}
+
+std::vector<RF::video_mode_t> RF::cocoa_delegate::enumerate_video_modes()
+{
+	@autoreleasepool
+	{
+
+	// FIXME: Same issue as RF::cocoa_delegate::current_video_mode()
+	CFArrayRef cf_modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+
+	std::vector<RF::video_mode_t> modes(CFArrayGetCount(cf_modes));
+
+	for (CFIndex i = 0; i < CFArrayGetCount(cf_modes); i++)
+	{
+		CGDisplayMode *cf_mode = (CGDisplayMode *)CFArrayGetValueAtIndex(cf_modes, i);
+
+		RF::video_mode_t mode
+		{
+			{ CGDisplayModeGetWidth(cf_mode), CGDisplayModeGetHeight(cf_mode) },
+			CGDisplayModeGetRefreshRate(cf_mode)
+		};
+
+		modes.emplace_back(mode);
+	}
+
+	return modes;
+
+	}
+}
+
+CGDisplayMode *RF::cocoa_delegate::to_native_video_mode_cocoa(RF::video_mode_t video_mode)
+{
+	@autoreleasepool
+	{
+
+	// FIXME: Same issue as RF::cocoa_delegate::current_video_mode()
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+	CGDisplayMode *native = nullptr;
+
+	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
+	{
+		CGDisplayMode *mode = (CGDisplayMode *)CFArrayGetValueAtIndex(modes, i);
+
+		bool matches_resolution = (video_mode.extent.x == CGDisplayModeGetWidth(mode)
+		                          && video_mode.extent.y == CGDisplayModeGetHeight(mode));
+		
+		bool matches_refresh = (video_mode.refresh_rate == CGDisplayModeGetRefreshRate(mode));
+
+		if (matches_resolution && matches_refresh)
+		{
+			native = mode;
+			break;
+		}
+	}
+
+	CFRelease(modes);
+
+	if (!native)
+	{
+		throw RF::engine_error
+		(
+			"Internal inconsistency: no CGDisplayMode found matching RF::video_mode_t with extent '<0>x<1>' and refresh rate '<2>'",
+			video_mode.extent.x, video_mode.extent.y,
+			video_mode.refresh_rate\
+		);
+	}
+
+	CFRetain(native);
+	return native;
+
+	}
+}
 
 void RF_placeholder_create_cocoa_menu(NSApplication *ns_application, std::string_view delegate_name)
 {
