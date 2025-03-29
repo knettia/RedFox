@@ -39,11 +39,15 @@ namespace RF
 		// static polymorphic create:
 		static RF::delegate *create(RF::delegate_info info);
 
-		// ---- Video Mode API ---- 
-		inline RF::video_mode_t video_mode()
-		{ return this->neutral_video_mode_; }
-
+		// ---- Video Mode API ----
+		/**
+		 * Returns the current video mode of the main display
+		 */
 		virtual RF::video_mode_t current_video_mode() = 0;
+
+		/**
+		 * Returns a list of the available video modes of the main display
+		 */
 		virtual std::vector<RF::video_mode_t> enumerate_video_modes() = 0;
 
 		// callbacks: 
