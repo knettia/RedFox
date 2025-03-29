@@ -66,7 +66,7 @@ std::vector<RF::video_mode_t> RF::cocoa_delegate::enumerate_video_modes()
 			CGDisplayModeGetRefreshRate(cf_mode)
 		};
 
-		modes.emplace_back(mode);
+		modes[i] = mode;
 	}
 
 	return modes;
