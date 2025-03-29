@@ -1,7 +1,8 @@
 #include "RF/interface/window.hpp"
 
-RF::window::window(RF::window_info info)
+RF::window::window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info)
 :
+	delegate_(delegate),
 	info_(std::move(info)), state_(RF::window_state_t::Focused),
 	mouse_position_(0, 0), flags_(RF::window_flag_bit_t::None)
 {

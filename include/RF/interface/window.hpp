@@ -2,6 +2,7 @@
 
 // RedFox
 #include "RF/vec2.hpp" // RF::uivec2
+#include "RF/reference_ptr.hpp"
 #include "RF/interface/graphics.hpp"
 #include "RF/interface/virtual_key.hpp"
 
@@ -21,6 +22,8 @@ namespace vk
 
 namespace RF
 {
+	class delegate;
+
 	struct window_info
 	{
 		std::string title;
@@ -73,6 +76,8 @@ namespace RF
 	class window
 	{
 	protected:
+		RF::reference_ptr<RF::delegate> delegate_;
+
 		RF::window_info info_;
 		RF::window_state_t state_;
 
@@ -93,16 +98,16 @@ namespace RF
 		virtual void handle_flag_update_(RF::window_flag_bit_t flags, bool enabled) = 0;
 	public:
 		// move/copy instructions:
-                window(const window &) = delete;
-                window(window &&) = delete;
-                window &operator=(const window &) = delete;
-                window &operator=(window &&) = delete;
+		window(const window &) = delete;
+		window(window &&) = delete;
+		window &operator=(const window &) = delete;
+		window &operator=(window &&) = delete;
 
 		// constructor/destructor instructions:
 		virtual ~window() = default;
-                window(RF::window_info info);
+		window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info);
 
-                // callbacks
+		// callbacks
 		inline void set_close_callback(std::function<void(RF::window *)> callback)
 		{ this->close_callback_ = callback; }
 

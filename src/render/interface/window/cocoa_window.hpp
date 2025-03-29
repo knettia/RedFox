@@ -1,6 +1,7 @@
 #if defined (__APPLE__)
 #pragma once
 // RedFox
+#include "RF/interface/video_mode.hpp"
 #include "RF/interface/window.hpp"
 
 #if defined (__OBJC__)
@@ -31,7 +32,7 @@ namespace RF
 		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
 	public:
 		~cocoa_window() override;
-		cocoa_window(RF::window_info info);
+		cocoa_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info);
 
 		void cocoa_call_close_callback(); // HACK: find better way to fix
 		void cocoa_centre_mouse();

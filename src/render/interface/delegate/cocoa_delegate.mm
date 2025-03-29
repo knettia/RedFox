@@ -174,6 +174,6 @@ char32_t RF::cocoa_delegate::to_keysym(RF::virtual_key_t key)
 
 RF::window *RF::cocoa_delegate::create_window(RF::window_info info)
 {
-	return new RF::cocoa_window(info);
+	return new RF::cocoa_window(RF::reference_ptr<RF::delegate>(this), info);
 	[this->ns_application_ run];
 }
