@@ -75,13 +75,13 @@ namespace RF
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec<2, A> operator==(const vec<2, T> &v) const
+		constexpr bool operator==(const vec<2, T> &v) const
 		{
 			return (x == v.x) && (y == v.y);
 		}
 
 		template<typename T, RF_arithmetic_template(T)>
-		constexpr vec<2, A> operator==(const T &a) const
+		constexpr bool operator==(const T &a) const
 		{
 			return (x == a) && (y == a);
 		}
