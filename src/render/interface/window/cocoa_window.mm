@@ -523,11 +523,13 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 	{
 		if (enabled)
 		{
-	
+			[this->ns_window_ setStyleMask:NSWindowStyleMaskBorderless];
+			[this->ns_window_ setHasShadow:NO];
 		}
 		else
 		{
-	
+			[this->ns_window_ setStyleMask:RF_NSWINDOW_STYLE];
+			[this->ns_window_ setHasShadow:YES];
 		}
 	}
 
