@@ -1,4 +1,5 @@
 #import "./cocoa_window.hpp" // header
+#import "../delegate/cocoa_delegate.hpp"
 #import "RF/log.hpp" // RF::logf::
 
 @implementation cocoa_view_m
@@ -144,7 +145,7 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 	{
 		self.window_->update_window_state(RF::window_state_t::Focused);
 
-		if (self.window_->get_flag(RF::window_flag_bit_t::MouseLocked))
+		if (self.window_->get_flag(RF::window_flag_bit_t::CursorLocked))
 		{
 			self.window_->cocoa_centre_mouse();
 		}
@@ -165,8 +166,10 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 @end
 // cocoa_window_m
 
+#define RF_NSWINDOW_STYLE NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
+
 // RF::cocoa_window implementation:
-RF::cocoa_window::cocoa_window(RF::window_info info) : RF::window(info)
+RF::cocoa_window::cocoa_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info) : RF::window(delegate, info)
 {
 	@autoreleasepool
 	{
@@ -174,7 +177,7 @@ RF::cocoa_window::cocoa_window(RF::window_info info) : RF::window(info)
 		this->ns_window_ = [
 			[NSWindow alloc]
 			initWithContentRect:rect
-			styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable )
+			styleMask:(RF_NSWINDOW_STYLE)
 			backing:NSBackingStoreType::NSBackingStoreBuffered
 			defer:NO
 		];
@@ -300,6 +303,35 @@ void RF::cocoa_window::cocoa_centre_mouse()
 	CGDisplayMoveCursorToPoint([screenID unsignedIntValue], CGPointMake(CGRectGetMidX(window_bounds), CGRectGetMidY(window_bounds)));
 }
 
+void RF::cocoa_window::handle_window_fullscreen_()
+{
+	const CGDirectDisplayID display_id = CGMainDisplayID();
+	[this->ns_window_ setStyleMask:NSWindowStyleMaskBorderless];
+	[this->ns_window_ setHasShadow:NO];
+
+	CGDisplaySetDisplayMode(display_id, static_cast<RF::cocoa_delegate *>(this->delegate_.ptr_get())->to_native_video_mode_cocoa(this->fullscreen_mode_), nullptr);
+
+	const CGRect bounds = CGDisplayBounds(display_id);
+	const NSRect frame = NSMakeRect(
+		bounds.origin.x,
+		(bounds.origin.y + bounds.size.height) - this->info_.size.y, // Y offset because Cocoa origin is bottom-left, not top-left
+		this->info_.size.x,
+		this->info_.size.y
+	);
+
+	[this->ns_window_ setFrame:frame display:YES];
+}
+
+void RF::cocoa_window::handle_window_restore_()
+{
+	const CGDirectDisplayID display_id = CGMainDisplayID();
+
+	[this->ns_window_ setStyleMask:RF_NSWINDOW_STYLE];
+	[this->ns_window_ setHasShadow:YES];
+
+	CGDisplaySetDisplayMode(display_id, static_cast<RF::cocoa_delegate *>(this->delegate_.ptr_get())->to_native_video_mode_cocoa(this->delegate_->video_mode()), nullptr);
+}
+
 void RF::cocoa_window::update_window_state(RF::window_state_t new_state)
 {
 	if (this->state_ != new_state)
@@ -308,6 +340,20 @@ void RF::cocoa_window::update_window_state(RF::window_state_t new_state)
 		if (this->state_changed_callback_)
 		{
 			this->state_changed_callback_(this, new_state);
+		}
+
+		if (this->get_flag(RF::window_flag_bit_t::Fullscreen))
+		{
+			if (new_state == RF::window_state_t::Focused)
+			{
+				this->handle_window_fullscreen_();
+				[this->ns_window_ makeKeyAndOrderFront:nil];
+			}
+			else
+			{
+				this->handle_window_restore_();
+				[this->ns_window_ performMiniaturize:nil];
+			}
 		}
 	}
 }
@@ -452,32 +498,26 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 			CGDisplayShowCursor(CGMainDisplayID());
 		}
 	}
-	
+
 	RF_case_flag_bit(RF::window_flag_bit_t::Fullscreen)
 	{
-		NSWindowCollectionBehavior behavior = [this->ns_window_ collectionBehavior];
-		behavior |= NSWindowCollectionBehaviorFullScreenPrimary;
-		[this->ns_window_ setCollectionBehavior:behavior];
+		CGDirectDisplayID display_id = CGMainDisplayID();
+		CGRect bounds = CGDisplayBounds(display_id);
 
 		if (enabled)
 		{
-			if (!(this->ns_window_.styleMask & NSWindowStyleMaskFullSizeContentView))
-			{
-				[this->ns_window_ toggleFullScreen:nil];
-			}
+			this->fullscreen_mode_ = this->find_fitting_video_mode_(this->info_.size);
+
+			this->handle_window_fullscreen_();
+			[this->ns_window_ makeKeyAndOrderFront:nil];
 		}
 		else
 		{
-			if ((this->ns_window_.styleMask & NSWindowStyleMaskFullSizeContentView))
-			{
-				[this->ns_window_ toggleFullScreen:nil];
-			}
+			this->handle_window_restore_();
+			[this->ns_window_ makeKeyAndOrderFront:nil];
 		}
-
-		behavior = [this->ns_window_ collectionBehavior];
-		behavior &= ~NSWindowCollectionBehaviorFullScreenPrimary;
-		[this->ns_window_ setCollectionBehavior:behavior];
 	}
+
 
 	RF_case_flag_bit(RF::window_flag_bit_t::Borderless)
 	{

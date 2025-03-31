@@ -29,6 +29,9 @@ namespace RF
 
 		CAMetalLayer *metal_layer_;
 
+		void handle_window_restore_() override;
+		void handle_window_fullscreen_() override;
+
 		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
 	public:
 		~cocoa_window() override;
