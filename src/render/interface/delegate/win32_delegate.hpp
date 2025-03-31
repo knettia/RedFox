@@ -15,6 +15,11 @@ namespace RF
 	public:
 		~win32_delegate();
 		win32_delegate(RF::delegate_info info);
+		
+		RF::video_mode_t current_video_mode() override;
+		std::vector<RF::video_mode_t> enumerate_video_modes() override;
+
+		DEVMODE to_native_video_mode_win32(RF::video_mode_t mode);
 
 		void terminate() override;
 		void poll_events() override;

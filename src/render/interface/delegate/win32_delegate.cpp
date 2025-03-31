@@ -1,4 +1,5 @@
 #include "./win32_delegate.hpp"
+#include "RF/exception.hpp"
 #include "RF/interface/virtual_key.hpp"
 
 // RF::win32_delegate implementation:
@@ -10,7 +11,82 @@ void RF::win32_delegate::terminate()
 	UnregisterClass(this->window_class_.lpszClassName, this->window_class_.hInstance);
 }
 
-RF::win32_delegate::win32_delegate(RF::delegate_info info) : RF::delegate(info)
+// ---- Video Mode ----
+RF::video_mode_t RF::win32_delegate::current_video_mode()
+{
+	DEVMODE native;
+
+	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &native))
+	{
+		RF::video_mode_t mode
+		{
+			{native.dmPelsWidth, native.dmPelsHeight},
+			static_cast<double>(native.dmDisplayFrequency)
+		};
+
+		return mode;
+	}
+
+	throw RF::engine_error("Could not retrieve current video mode.");
+}
+
+std::vector<RF::video_mode_t> RF::win32_delegate::enumerate_video_modes()
+{
+	std::vector<RF::video_mode_t> modes;
+	DEVMODE native;
+	native.dmSize = sizeof(DEVMODE);
+
+	int i = 0;
+	while (EnumDisplaySettings(NULL, i++, &native))
+	{
+		RF::video_mode_t mode
+		{
+			{native.dmPelsWidth, native.dmPelsHeight},
+			static_cast<double>(native.dmDisplayFrequency)
+		};
+
+		modes.push_back(mode);
+	}
+
+	return modes;
+}
+
+DEVMODE RF::win32_delegate::to_native_video_mode_win32(RF::video_mode_t video_mode)
+{
+	DEVMODE native;
+	native.dmSize = sizeof(DEVMODE);
+
+	int i = 0;
+	while (EnumDisplaySettings(NULL, i++, &native))
+	{
+		RF::video_mode_t mode
+		{
+			{native.dmPelsWidth, native.dmPelsHeight},
+			static_cast<double>(native.dmDisplayFrequency)
+		};
+
+		
+		bool matches_resolution = (video_mode.extent.x == native.dmPelsWidth
+		                          && video_mode.extent.y == native.dmPelsHeight);
+		
+		bool matches_refresh = (video_mode.refresh_rate == native.dmDisplayFrequency);
+
+		if (matches_resolution && matches_refresh)
+		{
+			return native;
+			break;
+		}
+	}
+
+	throw RF::engine_error
+	(
+		"Internal inconsistency: no DEVMODE found matching RF::video_mode_t with extent '<0>x<1>' and refresh rate '<2>'",
+		video_mode.extent.x, video_mode.extent.y,
+		video_mode.refresh_rate
+	);
+}
+
+RF::win32_delegate::win32_delegate(RF::delegate_info info) : RF::delegate(info, this->current_video_mode())
 {
 	this->window_class_ = {
 		.lpfnWndProc = DefWindowProc,
@@ -56,4 +132,4 @@ char32_t RF::win32_delegate::to_keysym(RF::virtual_key_t key)
 
 #include "../window/win32_window.hpp"
 RF::window *RF::win32_delegate::create_window(RF::window_info info)
-{ return new RF::win32_window(info); }
+{ return new RF::win32_window(RF::reference_ptr<RF::delegate>(this), info); }
