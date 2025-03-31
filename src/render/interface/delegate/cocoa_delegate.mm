@@ -230,19 +230,21 @@ char32_t RF::cocoa_delegate::to_keysym(RF::virtual_key_t key)
 	TISInputSourceRef current_keyboard = TISCopyCurrentKeyboardLayoutInputSource();
 	CFDataRef layout_data = (CFDataRef)TISGetInputSourceProperty(current_keyboard, kTISPropertyUnicodeKeyLayoutData);
 	
-	if (!layout_data) {
+	if (!layout_data)
+	{
 		CFRelease(current_keyboard);
-		throw std::runtime_error("fatal error: layout data for current keyboard not found");
+		throw RF::engine_error("Layout data for current keyboard could not be found");
 	}
 
-	const UCKeyboardLayout *keyboard_layout = (const UCKeyboardLayout *)CFDataGetBytePtr(layout_data);
-	if (!keyboard_layout) {
+	const UCKeyboardLayout *keyboard_layout = reinterpret_cast<const UCKeyboardLayout *>(CFDataGetBytePtr(layout_data));
+	if (!keyboard_layout)
+	{
 		CFRelease(current_keyboard);
-		throw std::runtime_error("fatal error: keyboard layout for current keyboard not found");
+		throw RF::engine_error("Keyboard layout for current keyboard could not found");
 	}
 
 	std::uint32_t dead_key_state = 0;
-	uint16_t str;
+	std::uint16_t str;
 	unsigned long real_length = 0;
 
 	OSStatus status = UCKeyTranslate(
