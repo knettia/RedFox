@@ -1,3 +1,9 @@
+#include "RF/definitions.hpp"
+
+#if defined (__WINDOWS__)
+#define NOMINMAX // prevent windows.h to include MIN and MAX macros
+#endif
+
 #include "RF/interface/window.hpp"
 
 RF::window::window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info)
