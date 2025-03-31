@@ -4,6 +4,7 @@
 #include "RF/vec2.hpp" // RF::uivec2
 #include "RF/reference_ptr.hpp"
 #include "RF/interface/graphics.hpp"
+#include "RF/interface/video_mode.hpp"
 #include "RF/interface/virtual_key.hpp"
 
 namespace vk
@@ -92,6 +93,23 @@ namespace RF
 
 		std::unordered_map<RF::virtual_key_t, RF::key_state_t> virtual_key_states_;
 		std::unordered_map<RF::mouse_key_t, RF::key_state_t> mouse_key_states_;
+
+		RF::video_mode_t fullscreen_mode_;
+
+		/**
+		 * Returns a mode with the closest extent to a desired one
+		 */
+		RF::video_mode_t find_fitting_video_mode_(RF::uivec2 extent);
+
+		/**
+		 * Handles video mode and window restoration after a fullscreen state
+		 */
+		virtual void handle_window_restore_() = 0;
+
+		/**
+		 * Handles video mode conversion and setting the window to appear fullscreen
+		 */
+		virtual void handle_window_fullscreen_() = 0;
 
 		RF::window_flag_bit_t flags_;
 
