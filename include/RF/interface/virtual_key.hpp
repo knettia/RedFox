@@ -25,7 +25,7 @@ namespace RF
 
 		Escape,
 		Return, PadReturn,
-		Backspace, PadBackspace,
+		Backspace,
 		Tab,
 		Space,
 
@@ -46,7 +46,7 @@ namespace RF
 		ArrowUp, ArrowDown,
 		ArrowLeft, ArrowRight,
 
-		CapsLock, PrintScreen, ScrollLock, PauseBreak,
+		CapsLock,
 		_Count
 	};
 
@@ -122,8 +122,30 @@ namespace RF
 		{kVK_ANSI_7, RF::virtual_key_t::Key7},
 		{kVK_ANSI_8, RF::virtual_key_t::Key8},
 		{kVK_ANSI_9, RF::virtual_key_t::Key9},
+		{kVK_ANSI_Keypad0, RF::virtual_key_t::Pad0},
+		{kVK_ANSI_Keypad1, RF::virtual_key_t::Pad1},
+		{kVK_ANSI_Keypad2, RF::virtual_key_t::Pad2},
+		{kVK_ANSI_Keypad3, RF::virtual_key_t::Pad3},
+		{kVK_ANSI_Keypad4, RF::virtual_key_t::Pad4},
+		{kVK_ANSI_Keypad5, RF::virtual_key_t::Pad5},
+		{kVK_ANSI_Keypad6, RF::virtual_key_t::Pad6},
+		{kVK_ANSI_Keypad7, RF::virtual_key_t::Pad7},
+		{kVK_ANSI_Keypad8, RF::virtual_key_t::Pad8},
+		{kVK_ANSI_Keypad9, RF::virtual_key_t::Pad9},
 		{kVK_Escape, RF::virtual_key_t::Escape},
 		{kVK_Return, RF::virtual_key_t::Return},
+		{kVK_ANSI_KeypadEnter, RF::virtual_key_t::PadReturn},
+		{kVK_Delete, RF::virtual_key_t::Backspace},
+		{kVK_Tab, RF::virtual_key_t::Tab},
+		{kVK_Space, RF::virtual_key_t::Space},
+		{kVK_Shift, RF::virtual_key_t::LShift},
+		{kVK_RightShift, RF::virtual_key_t::LShift},
+		{kVK_Control, RF::virtual_key_t::LControl},
+		{kVK_RightControl, RF::virtual_key_t::RControl},
+		{kVK_Command, RF::virtual_key_t::LSuper},
+		{kVK_RightCommand, RF::virtual_key_t::RSuper},
+		{kVK_Option, RF::virtual_key_t::Alt},
+		{kVK_RightOption, RF::virtual_key_t::AltGr},
 		{kVK_F1, RF::virtual_key_t::F1},
 		{kVK_F2, RF::virtual_key_t::F2},
 		{kVK_F3, RF::virtual_key_t::F3},
@@ -143,7 +165,17 @@ namespace RF
 		{kVK_F17, RF::virtual_key_t::F17},
 		{kVK_F18, RF::virtual_key_t::F18},
 		{kVK_F19, RF::virtual_key_t::F19},
-		{kVK_F20, RF::virtual_key_t::F20}
+		{kVK_F20, RF::virtual_key_t::F20},
+		{kVK_Home, RF::virtual_key_t::Home},
+		{kVK_End, RF::virtual_key_t::End},
+		{kVK_Help, RF::virtual_key_t::Insert},
+		{kVK_ForwardDelete, RF::virtual_key_t::Delete},
+		{kVK_PageUp, RF::virtual_key_t::PageUp},
+		{kVK_PageDown, RF::virtual_key_t::PageDown},
+		{kVK_UpArrow, RF::virtual_key_t::ArrowUp},
+		{kVK_DownArrow, RF::virtual_key_t::ArrowDown},
+		{kVK_LeftArrow, RF::virtual_key_t::ArrowLeft},
+		{kVK_RightArrow, RF::virtual_key_t::ArrowRight},
 	};
 #elif defined (_WIN32)
 	// https://docs.google.com/spreadsheets/d/1GSj0gKDxyWAecB3SIyEZ2ssPETZkkxn67gdIwL1zFUs/edit?gid=0#gid=0
