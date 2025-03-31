@@ -90,34 +90,15 @@ int main()
 	{
 		if (state == RF::key_state_t::Triggered)
 		{
-			RF::logf::info(
-				"user triggered key <1> at RF::window <0>",
-				window->get_info().title,
-				RF::to_utf8(game_process.delegate->to_keysym(key))
-			);
+			if (key == RF::virtual_key_t::A)
+			{
+				window->set_flag(RF::window_flag_bit_t::Fullscreen, true);
+			}
+			if (key == RF::virtual_key_t::S)
+			{
+				window->set_flag(RF::window_flag_bit_t::Fullscreen, false);
+			}
 		}
-	});
-
-	game_process.main_window->set_mouse_key_event_callback(
-	[](RF::window *window, RF::mouse_key_t key, RF::key_state_t state) -> void
-	{
-		if (state == RF::key_state_t::Triggered)
-		{
-			RF::logf::info(
-				"user pressed mouse button <0>",
-				static_cast<int>(key)
-			);
-		}
-	});
-	
-	game_process.main_window->set_mouse_move_callback(
-	[](RF::window *window, RF::uivec2 position, RF::ivec2 difference) -> void
-	{
-		RF::logf::info(
-			"mouse moved difference: <0>:<1>",
-			difference.x,
-			difference.y
-		);
 	});
 	
 	while (game_process.running)
