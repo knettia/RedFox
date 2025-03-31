@@ -25,6 +25,46 @@ RF::window_info RF::window::get_info() const
 RF::window_state_t RF::window::get_state() const
 { return this->state_; }
 
+#include "RF/log.hpp"
+#include "RF/interface/delegate.hpp"
+RF::video_mode_t RF::window::find_fitting_video_mode_(RF::uivec2 extent)
+{
+	// Enumerate video modes and choose the best one for fullscreen
+	// Based on the window's size.
+	const std::vector<RF::video_mode_t> modes = this->delegate_->enumerate_video_modes();
+	RF::video_mode_t best;
+
+	std::uint32_t least_size_diff = UINT32_MAX;
+
+	for (const RF::video_mode_t mode : modes)
+	{
+		const std::uint32_t height_diff = mode.extent.y - extent.y;
+		const std::uint32_t width_diff = mode.extent.x - extent.x;
+
+		if ((height_diff < least_size_diff) && (width_diff < least_size_diff))
+		{
+			best = mode;
+			least_size_diff = std::min(height_diff, width_diff);
+		}
+	}
+
+	// TODO: Initialise a warning prompt/dialogue informing the
+	//       Developer/user about no video mode match, instead of
+	//       Using a simple terminal output
+	if (best.extent != extent)
+	{
+		RF::logf::warn(
+			"Could not find video mode with extent that matches the window resolution '<0>x<1>' in the main display. Best match: '<2>x<3>'",
+			extent.x,
+			extent.y,
+			best.extent.x,
+			best.extent.y
+		);
+	}
+
+	return best;
+}
+
 #include <stdexcept>
 RF::key_state_t RF::window::get_key_state(RF::virtual_key_t key) const
 {
