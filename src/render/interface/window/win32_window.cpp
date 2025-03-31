@@ -1,4 +1,5 @@
 #include "./win32_window.hpp" // header
+#include "../delegate/win32_delegate.hpp"
 #include <windows.h>
 
 #define RF_WINDOWSTYLE (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX)
@@ -172,6 +173,20 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 				this->lock_cursor_();
 			}
 		}
+
+		if (this->get_flag(RF::window_flag_bit_t::Fullscreen))
+		{
+			if (new_state == RF::window_state_t::Focused)
+			{
+				this->handle_window_fullscreen_();
+				ShowWindow(this->handle_window_, SW_SHOW);
+			}
+			else
+			{
+				this->handle_window_restore_();
+				ShowWindow(this->handle_window_, SW_MINIMIZE);
+			}
+		}
 	}
 
 }
@@ -179,7 +194,7 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 #include "RF/exception.hpp"
 
 // RF::win32_window implementation:
-RF::win32_window::win32_window(RF::window_info info) : RF::window(info)
+RF::win32_window::win32_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info) : RF::window(delegate, info)
 {
 	// create window
 	this->handle_window_ = CreateWindowEx(
@@ -253,6 +268,38 @@ vk::ResultValue<vk::SurfaceKHR> RF::win32_window::create_surface(vk::Instance in
 	{ return vk::ResultValue<vk::SurfaceKHR>(result, nullptr); }
 
 	return vk::ResultValue<vk::SurfaceKHR>(result, static_cast<vk::SurfaceKHR>(raw_surface));
+}
+
+void RF::win32_window::handle_window_fullscreen_()
+{
+	LONG style = GetWindowLong(this->handle_window_, GWL_STYLE);
+
+	SetWindowLong(this->handle_window_, GWL_STYLE, style & ~RF_WINDOWSTYLE);
+
+	DEVMODE native = static_cast<RF::win32_delegate *>(this->delegate_.ptr_get())->to_native_video_mode_win32(this->fullscreen_mode_);
+        LONG result = ChangeDisplaySettings(&native, CDS_FULLSCREEN);
+
+	SetWindowPos(this->handle_window_, NULL, 0, 0, this->info_.size.x, this->info_.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
+
+	if (result != DISP_CHANGE_SUCCESSFUL)
+        {
+		throw RF::engine_error("Failed to change display settings.");
+        }
+}
+
+void RF::win32_window::handle_window_restore_()
+{
+	LONG style = GetWindowLong(this->handle_window_, GWL_STYLE);
+	
+	SetWindowLong(this->handle_window_, GWL_STYLE, style | RF_WINDOWSTYLE);
+
+	DEVMODE native = static_cast<RF::win32_delegate *>(this->delegate_.ptr_get())->to_native_video_mode_win32(this->delegate_->video_mode());
+        LONG result = ChangeDisplaySettings(&native, CDS_FULLSCREEN);
+
+	if (result != DISP_CHANGE_SUCCESSFUL)
+        {
+		throw RF::engine_error("Failed to change display settings.");
+        }
 }
 
 void RF::win32_window::handle_virtual_key_down(RF::virtual_key_t key)
@@ -435,11 +482,15 @@ void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 	{
 		if (enabled)
 		{
-			
+			this->fullscreen_mode_ = this->find_fitting_video_mode_(this->info_.size);
+
+			this->handle_window_fullscreen_();
+			ShowWindow(this->handle_window_, SW_SHOW);
 		}
 		else
 		{
-			
+			this->handle_window_restore_();
+			ShowWindow(this->handle_window_, SW_SHOW);
 		}
 	}
 	

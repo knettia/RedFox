@@ -13,6 +13,9 @@ namespace RF
 	private:
 		HWND handle_window_;
 
+		void handle_window_restore_() override;
+		void handle_window_fullscreen_() override;
+
 		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
 
 		// Locks the cursor to the middle position of the window 
@@ -22,7 +25,7 @@ namespace RF
 		void align_window_();
 	public:
 		~win32_window() override;
-		win32_window(RF::window_info info);
+		win32_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info);
 		
 		void win32_call_close_callback(); // HACK: find better way to fix
 		void update_window_state(RF::window_state_t state);
