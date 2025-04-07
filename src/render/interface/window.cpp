@@ -71,12 +71,12 @@ RF::video_mode_t RF::window::find_fitting_video_mode_(RF::uivec2 extent)
 	return best;
 }
 
-#include <stdexcept>
+#include <RF/exception.hpp>
 RF::key_state_t RF::window::get_key_state(RF::virtual_key_t key) const
 {
 	auto it = this->virtual_key_states_.find(key);
 	if (it == this->virtual_key_states_.end())
-	{ throw std::runtime_error("fatal error, RF::virtual_key_t not found in key states umap"); }
+	{ throw RF::engine_error("Internal inconsistency: RF::virtual_key_t '<0>' not found in window's key states umap", static_cast<std::uint32_t>(key)); }
 	return it->second;
 }
 
