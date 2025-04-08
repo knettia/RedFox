@@ -114,6 +114,7 @@ namespace RF
 		RF::window_flag_bit_t flags_;
 
 		virtual void handle_flag_update_(RF::window_flag_bit_t flags, bool enabled) = 0;
+		virtual void handle_set_cursor_position_(const RF::uivec2 point) = 0;
 	public:
 		// move/copy instructions:
 		window(const window &) = delete;
@@ -152,9 +153,14 @@ namespace RF
 		virtual void set_size(RF::uivec2 size) = 0;
 
 		/**
-		 * Changes the position of the cursor to the centre of the window
+		 * Changes the position of the cursor to a point inside the window
 		 */
-		virtual void centre_cursor() = 0;
+		void set_cursor_position(const RF::uivec2 point);
+
+		/**
+		 * Centres the cursor position to the widow's centre
+		 */
+		void centre_cursor_position();
 
 		RF::window_info get_info() const;
 		RF::window_state_t get_state() const;

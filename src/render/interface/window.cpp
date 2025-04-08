@@ -72,6 +72,27 @@ RF::video_mode_t RF::window::find_fitting_video_mode_(RF::uivec2 extent)
 }
 
 #include <RF/exception.hpp>
+void RF::window::set_cursor_position(const RF::uivec2 point)
+{
+	if (point.x > this->info_.size.x || point.y > this->info_.size.y)
+	{
+		throw RF::engine_error(
+			"Attempting to set cursor position (<0>, <1>) outside of the window's bounds (<2>, <3>) is an illegal operation",
+			point.x,
+			point.y,
+			this->info_.size.x,
+			this->info_.size.y
+		);
+	}
+
+	this->handle_set_cursor_position_(point);
+}
+
+void RF::window::centre_cursor_position()
+{
+	this->set_cursor_position(this->info_.size / 2);
+}
+
 RF::key_state_t RF::window::get_key_state(RF::virtual_key_t key) const
 {
 	auto it = this->virtual_key_states_.find(key);
