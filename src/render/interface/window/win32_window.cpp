@@ -170,7 +170,7 @@ void RF::win32_window::update_window_state(RF::window_state_t new_state)
 		{
 			if (this->get_flag(RF::window_flag_bit_t::CursorLocked))
 			{
-				this->lock_cursor_();
+				this->lock_cursor_(this->mouse_position_);
 			}
 		}
 
@@ -403,10 +403,14 @@ void RF::win32_window::handle_mouse_key_up(RF::mouse_key_t key)
 void RF::win32_window::handle_mouse_update(RF::uivec2 position)
 {
 	RF::ivec2 diff = RF::ivec2(position.x, position.y) - this->mouse_position_;
-	this->mouse_position_ = position;
+	
+	if (!this->get_flag(RF::window_flag_bit_t::CursorLocked))
+	{
+		this->mouse_position_ = position;
+	}
 
 	if (this->mouse_move_callback_)
-	{ this->mouse_move_callback_(this, position, diff); }
+	{ this->mouse_move_callback_(this, this->mouse_position_, diff); }
 }
 
 void RF::win32_window::focus()
@@ -419,7 +423,7 @@ void RF::win32_window::minimise()
 	ShowWindow(this->handle_window_, SW_MINIMIZE);
 }
 
-void RF::win32_window::lock_cursor_()
+void RF::win32_window::lock_cursor_(const RF::uivec2 point)
 {
 	RECT rect;
 	if (GetClientRect(this->handle_window_, &rect))
@@ -427,15 +431,12 @@ void RF::win32_window::lock_cursor_()
 		POINT top_left { rect.left, rect.top };
 		ClientToScreen(this->handle_window_, &top_left);
 
-		int x = top_left.x + (rect.right - rect.left) / 2;
-		int y = top_left.y + (rect.bottom - rect.top) / 2;
-
 		RECT clipRect
 		{
-			.left = x,
-			.top = y,
-			.right = x,
-			.bottom = y
+			.left = static_cast<LONG>(point.x),
+			.top = static_cast<LONG>(point.y),
+			.right = static_cast<LONG>(point.x),
+			.bottom = static_cast<LONG>(point.y)
 		};
 
 		ClipCursor(&clipRect);
@@ -449,6 +450,16 @@ void RF::win32_window::align_window_()
 	SetWindowPos(this->handle_window_, nullptr, x, y, this->info_.size.x, this->info_.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
+void RF::win32_window::handle_set_cursor_position_(const RF::uivec2 point)
+{
+	this->mouse_position_ = point;
+
+	RECT rect;
+	GetWindowRect(this->handle_window_, &rect);
+
+	SetCursorPos(rect.left + point.x, rect.top + point.y);
+}
+
 void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool enabled)
 {
 	#define RF_case_flag_bit(flag) if ((flags & flag) != RF::window_flag_bit_t::None) \
@@ -457,7 +468,7 @@ void RF::win32_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 	{
 		if (enabled)
 		{
-			this->lock_cursor_();
+			this->lock_cursor_(this->mouse_position_);
 		}
 		else
 		{

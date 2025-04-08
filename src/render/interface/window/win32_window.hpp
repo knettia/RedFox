@@ -17,9 +17,10 @@ namespace RF
 		void handle_window_fullscreen_() override;
 
 		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
+		void handle_set_cursor_position_(const RF::uivec2 point) override;
 
-		// Locks the cursor to the middle position of the window 
-		void lock_cursor_();
+		// Locks the cursor to a position inside the window 
+		void lock_cursor_(const RF::uivec2 point);
 
 		// Aligns the window in the centre of the screes
 		void align_window_();
