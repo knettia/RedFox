@@ -20,7 +20,7 @@
 	return YES;
 }
 
-// tagging in events of left mouse button 
+// tagging in events of left mouse button
 - (void) mouseDown:(NSEvent *) event
 {
 	if (self.window_)
@@ -33,7 +33,7 @@
 	{ self.window_->handle_mouse_key_up(RF::mouse_key_t::LMB); }
 }
 
-// tagging in events of right mouse button 
+// tagging in events of right mouse button
 - (void) rightMouseDown:(NSEvent *) event
 {
 	if (self.window_)
@@ -94,8 +94,8 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 		CGFloat delta_x = event.deltaX;
 		CGFloat delta_y = event.deltaY;
 
-		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(std::ceil(delta_x), 0.0, static_cast<double>(size.x)));
-		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(std::ceil(delta_y), 0.0, static_cast<double>(size.y)));
+		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.x, 0.0, static_cast<double>(size.x)));
+		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.y, 0.0, static_cast<double>(size.y)));
 
 		y = size.y - y;
 
@@ -144,11 +144,6 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 	if (self.window_)
 	{
 		self.window_->update_window_state(RF::window_state_t::Focused);
-
-		if (self.window_->get_flag(RF::window_flag_bit_t::CursorLocked))
-		{
-			self.window_->cocoa_centre_mouse();
-		}
 	}
 }
 
@@ -228,15 +223,15 @@ vk::ResultValue<vk::SurfaceKHR> RF::cocoa_window::create_surface(vk::Instance in
 		sci.pLayer = this->metal_layer_;
 
 		auto vk_create_metal_surface_ext = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(instance.getProcAddr("vkCreateMetalSurfaceEXT"));
-		
+
 		if (!vk_create_metal_surface_ext)
 		{ return vk::ResultValue<vk::SurfaceKHR>(vk::Result::eErrorExtensionNotPresent, nullptr); }
 
 		VkSurfaceKHR raw_surface;
 		vk::Result result = static_cast<vk::Result>(vk_create_metal_surface_ext(
-			static_cast<VkInstance>(instance), 
-			&sci, 
-			reinterpret_cast<const VkAllocationCallbacks*>(allocator), 
+			static_cast<VkInstance>(instance),
+			&sci,
+			reinterpret_cast<const VkAllocationCallbacks*>(allocator),
 			&raw_surface
 		));
 
@@ -284,7 +279,7 @@ void RF::cocoa_window::cocoa_call_close_callback()
 	{ this->close_callback_(this); }
 }
 
-void RF::cocoa_window::cocoa_centre_mouse()
+void RF::cocoa_window::centre_cursor()
 {
 	NSRect window_frame = [this->ns_window_ frame];
 	NSRect screen_frame = [[this->ns_window_ screen] frame];
@@ -301,6 +296,8 @@ void RF::cocoa_window::cocoa_centre_mouse()
 
 	// TODO: fix this to properly centre on display other than the main one
 	CGDisplayMoveCursorToPoint([screenID unsignedIntValue], CGPointMake(CGRectGetMidX(window_bounds), CGRectGetMidY(window_bounds)));
+
+	this->mouse_position_ = this->info_.size / 2;
 }
 
 void RF::cocoa_window::handle_window_fullscreen_()
@@ -340,6 +337,23 @@ void RF::cocoa_window::update_window_state(RF::window_state_t new_state)
 		if (this->state_changed_callback_)
 		{
 			this->state_changed_callback_(this, new_state);
+		}
+
+		if (this->get_flag(RF::window_flag_bit_t::CursorLocked))
+		{
+			if (new_state == RF::window_state_t::Focused)
+			{
+				NSRect window_frame = [this->ns_window_ frame];
+				NSRect screen_frame = [[this->ns_window_ screen] frame];
+				CGRect window_bounds = CGRectMake(
+					window_frame.origin.x,
+					screen_frame.size.height - window_frame.origin.y - window_frame.size.height,
+					window_frame.size.width,
+					window_frame.size.height
+				);
+
+				CGDisplayMoveCursorToPoint(CGMainDisplayID(), CGPointMake(window_bounds.origin.x + this->mouse_position_.x, window_bounds.origin.y + this->mouse_position_.y));
+			}
 		}
 
 		if (this->get_flag(RF::window_flag_bit_t::Fullscreen))
@@ -465,7 +479,7 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 void RF::cocoa_window::handle_mouse_update(RF::uivec2 position, RF::ivec2 difference)
 {
 	this->mouse_position_ = position;
-	
+
 	if (this->mouse_move_callback_)
 	{ this->mouse_move_callback_(this, this->mouse_position_, difference); }
 }
@@ -478,7 +492,7 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 	{
 		if (enabled)
 		{
-			this->cocoa_centre_mouse();
+			// this->locked_cursor_position_ = this->mouse_position_;
 			CGAssociateMouseAndMouseCursorPosition(false);
 		}
 		else
@@ -542,6 +556,6 @@ void RF::cocoa_window::set_size(RF::uivec2 size)
 	NSRect ns_rect = this->ns_window_.frame;
 
 	NSRect frame = NSMakeRect(ns_rect.origin.x, ns_rect.origin.y, ns_size.width, ns_size.height);
-    
+
     	[this->ns_window_ setFrame:frame display:YES animate:NO];
 }

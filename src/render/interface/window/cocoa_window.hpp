@@ -38,7 +38,6 @@ namespace RF
 		cocoa_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info);
 
 		void cocoa_call_close_callback(); // HACK: find better way to fix
-		void cocoa_centre_mouse();
 
 		void update_window_state(RF::window_state_t state);
 		
@@ -57,6 +56,7 @@ namespace RF
 		void minimise() override;
 
 		void set_size(RF::uivec2 size) override;
+		void centre_cursor() override;
 	};
 } // namespace RF
 
