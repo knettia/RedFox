@@ -33,6 +33,7 @@ namespace RF
 		void handle_window_fullscreen_() override;
 
 		void handle_flag_update_(RF::window_flag_bit_t flag, bool enabled) override;
+		void handle_set_cursor_position_(const RF::uivec2 point) override;
 	public:
 		~cocoa_window() override;
 		cocoa_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info);
@@ -56,7 +57,6 @@ namespace RF
 		void minimise() override;
 
 		void set_size(RF::uivec2 size) override;
-		void centre_cursor() override;
 	};
 } // namespace RF
 

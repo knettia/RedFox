@@ -279,7 +279,7 @@ void RF::cocoa_window::cocoa_call_close_callback()
 	{ this->close_callback_(this); }
 }
 
-void RF::cocoa_window::centre_cursor()
+void RF::cocoa_window::handle_set_cursor_position_(const RF::uivec2 point)
 {
 	NSRect window_frame = [this->ns_window_ frame];
 	NSRect screen_frame = [[this->ns_window_ screen] frame];
@@ -294,10 +294,10 @@ void RF::cocoa_window::centre_cursor()
 	NSDictionary *screenDictionary = [screen deviceDescription];
 	NSNumber *screenID = [screenDictionary objectForKey:@"NSScreenNumber"];
 
-	// TODO: fix this to properly centre on display other than the main one
-	CGDisplayMoveCursorToPoint([screenID unsignedIntValue], CGPointMake(CGRectGetMidX(window_bounds), CGRectGetMidY(window_bounds)));
+	this->mouse_position_ = point;
 
-	this->mouse_position_ = this->info_.size / 2;
+	// TODO: fix this to properly set on display other than the main one
+	CGDisplayMoveCursorToPoint([screenID unsignedIntValue], CGPointMake(window_bounds.origin.x + point.x, window_bounds.origin.y + point.y));
 }
 
 void RF::cocoa_window::handle_window_fullscreen_()
@@ -343,16 +343,7 @@ void RF::cocoa_window::update_window_state(RF::window_state_t new_state)
 		{
 			if (new_state == RF::window_state_t::Focused)
 			{
-				NSRect window_frame = [this->ns_window_ frame];
-				NSRect screen_frame = [[this->ns_window_ screen] frame];
-				CGRect window_bounds = CGRectMake(
-					window_frame.origin.x,
-					screen_frame.size.height - window_frame.origin.y - window_frame.size.height,
-					window_frame.size.width,
-					window_frame.size.height
-				);
-
-				CGDisplayMoveCursorToPoint(CGMainDisplayID(), CGPointMake(window_bounds.origin.x + this->mouse_position_.x, window_bounds.origin.y + this->mouse_position_.y));
+				this->handle_set_cursor_position_(this->mouse_position_);
 			}
 		}
 
@@ -478,7 +469,10 @@ void RF::cocoa_window::handle_mouse_key_up(RF::mouse_key_t key)
 
 void RF::cocoa_window::handle_mouse_update(RF::uivec2 position, RF::ivec2 difference)
 {
-	this->mouse_position_ = position;
+	if (!this->get_flag(RF::window_flag_bit_t::CursorLocked))
+	{
+		this->mouse_position_ = position;
+	}
 
 	if (this->mouse_move_callback_)
 	{ this->mouse_move_callback_(this, this->mouse_position_, difference); }
@@ -492,7 +486,6 @@ void RF::cocoa_window::handle_flag_update_(RF::window_flag_bit_t flags, bool ena
 	{
 		if (enabled)
 		{
-			// this->locked_cursor_position_ = this->mouse_position_;
 			CGAssociateMouseAndMouseCursorPosition(false);
 		}
 		else
