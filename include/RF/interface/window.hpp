@@ -151,6 +151,11 @@ namespace RF
 
 		virtual void set_size(RF::uivec2 size) = 0;
 
+		/**
+		 * Changes the position of the cursor to the centre of the window
+		 */
+		virtual void centre_cursor() = 0;
+
 		RF::window_info get_info() const;
 		RF::window_state_t get_state() const;
 		RF::key_state_t get_key_state(RF::virtual_key_t key) const;
