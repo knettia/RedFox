@@ -108,31 +108,40 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
-		case (WM_ACTIVATE):
+		case WM_ACTIVATE:
 		{
+			// Window is focused
 			if (LOWORD(wParam) == WA_ACTIVE)
 			{
 				window->update_window_state(RF::window_state_t::Focused);
 			}
-			else if (window->get_state() != RF::window_state_t::Hidden)
+			// Window is visible
+			else if (LOWORD(wParam) == WA_INACTIVE && window->get_state() != RF::window_state_t::Hidden)
 			{
 				window->update_window_state(RF::window_state_t::Visible);
 			}
 			break;
 		}
 
-		case (WM_SIZE):
+		case WM_SIZE:
 		{
+			// Window is hidden
 			if (wParam == SIZE_MINIMIZED)
 			{
 				window->update_window_state(RF::window_state_t::Hidden);
 			}
-			else if (wParam == SIZE_RESTORED)
+
+			// Window is visible (fix for RF::window_state_t::Focused?)
+			else if (wParam == SIZE_RESTORED || wParam == SIZE_MAXIMIZED)
 			{
-				window->update_window_state(RF::window_state_t::Visible);
+				if (window->get_state() != RF::window_state_t::Focused)
+				{
+					window->update_window_state(RF::window_state_t::Visible);
+				}
 			}
 			break;
 		}
+
 
 		case (WM_MOUSEMOVE):
 		{
