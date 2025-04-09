@@ -4,7 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#if defined (RF_KTX_SUPPORT)
 #include <ktx.h>
+#endif
 
 RF::image_data_t::image_data_t(const std::uint8_t *src, std::size_t n)
 {
@@ -50,6 +52,7 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 
 		case (RF::image_t::KTX):
 		{
+		#if defined (RF_KTX_SUPPORT)	
 			ktxTexture *kTexture;
 			ktx_error_code_e error_code = ktxTexture_CreateFromNamedFile(file.data(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &kTexture);
 			if(error_code != KTX_SUCCESS || !kTexture)
@@ -89,6 +92,9 @@ RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
 			ktxTexture_Destroy(kTexture);
 
 			return result;
+		#else
+			throw RF::runtime_error("Failed to load KTX texture. RedFox Engine build was compiled without libktx");
+		#endif
 		}
 
 		case (RF::image_t::DDS):

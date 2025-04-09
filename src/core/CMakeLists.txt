@@ -12,6 +12,10 @@ endif()
 
 add_library(redfox-core SHARED ${CORE_SOURCES})
 
+if(KTX_SUPPORT)
+	target_compile_definitions(redfox-core PRIVATE KTX_SUPPORT)
+endif()
+
 # include
 target_include_directories(redfox-core PRIVATE ${CMAKE_SOURCE_DIR}/include)
 

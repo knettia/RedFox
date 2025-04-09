@@ -15,5 +15,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(KTX_SUPPORT "Compile RF::load_image with KTX support" ON)
+
 add_subdirectory(src) # libredfox-core, libredfox-render, libredfox-network
 add_subdirectory(test) # compile test sources
