@@ -34,9 +34,24 @@ namespace RF::sys
 	#if defined (__linux__)
 	std::string get_distro_name();
 	#endif
+
+	#if defined (__LINUX__) || defined (__BSD_KERNEL__)
+	constexpr std::vector<std::string> linux_lib_dirs
+	{
+		"/lib",
+		"/usr/lib",
+		"/usr/local/lib",
+		"/lib/x86_64-linux-gnu",
+		"/usr/lib/x86_64-linux-gnu",
+		"/lib/i386-linux-gnu",
+		"/usr/lib/i386-linux-gnu"
+	};
+
+	std::optional<std::string> find_core_library(std::string name);
+	#endif
+
 	std::string distribution_name();
 	std::string distribution_version();
-	
 
 	std::string get_process_name();
 
