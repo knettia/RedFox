@@ -10,7 +10,14 @@ void RF::monitor_m::crash_dialogue_()
 {
 	typedef GtkWidget *(*gtk_message_dialog_new_TYPE)(GtkWindow *, GtkDialogFlags, GtkMessageType, GtkButtonsType, const gchar *, ...);
 	
-	auto gtk_lib = RF::library_m::load_library("/usr/lib/x86_64-linux-gnu/libgtk-3.so");
+	auto gtk_lib_opt = RF::sys::find_core_library("gtk-3");
+
+	if (!gtk.has_value())
+	{
+		return; // no GTK graphical interface installed
+	}
+
+	auto gtk_lib = RF::library_m::load_library(gtk_lib_opt.value());
 	
 	auto g_type_check_instance_cast_FUNC = gtk_lib->get_function<GTypeInstance *(GTypeInstance *, GType)>("g_type_check_instance_cast");
 	
@@ -45,6 +52,13 @@ void RF::monitor_m::exception_dialogue_(std::string_view title, std::string_view
 {
 	typedef GtkWidget *(*gtk_message_dialog_new_TYPE)(GtkWindow *, GtkDialogFlags, GtkMessageType, GtkButtonsType, const gchar *, ...);
 	
+	auto gtk_lib_opt = RF::sys::find_core_library("gtk-3");
+
+	if (!gtk.has_value())
+	{
+		return; // no GTK graphical interface installed
+	}
+
 	auto gtk_lib = RF::library_m::load_library("/usr/lib/x86_64-linux-gnu/libgtk-3.so");
 	
 	auto g_type_check_instance_cast_FUNC = gtk_lib->get_function<GTypeInstance *(GTypeInstance *, GType)>("g_type_check_instance_cast");
