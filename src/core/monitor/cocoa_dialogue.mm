@@ -15,8 +15,6 @@ void RF::monitor_m::crash_dialogue_()
 	[alert addButtonWithTitle:@"Yes"];
 	[alert addButtonWithTitle:@"No"];
 
-	[[alert buttons][1] setKeyEquivalent:@"\r"];
-
 	NSWindow* alert_window = [alert window];
 	[alert_window setLevel:NSModalPanelWindowLevel];
 	[alert_window makeKeyAndOrderFront:nil];
