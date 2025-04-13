@@ -85,22 +85,47 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 	}
 }
 
-- (void) mouseMoved:(NSEvent *) event
+- (void)handle_mouse_motion:(NSEvent *)event
 {
-	if (self.window_)
+	if (!self.window_)
 	{
-		RF::uivec2 size = self.window_->get_info().size;
-
-		CGFloat delta_x = event.deltaX;
-		CGFloat delta_y = event.deltaY;
-
-		std::uint32_t x = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.x, 0.0, static_cast<double>(size.x)));
-		std::uint32_t y = static_cast<std::uint32_t>(std::clamp(self.window.mouseLocationOutsideOfEventStream.y, 0.0, static_cast<double>(size.y)));
-
-		y = size.y - y;
-
-		self.window_->handle_mouse_update(RF::uivec2(x, y), RF::ivec2(delta_x, delta_y));
+		return;
 	}
+
+	RF::uivec2 size = self.window_->get_info().size;
+
+	CGFloat delta_x = event.deltaX;
+	CGFloat delta_y = event.deltaY;
+
+	NSPoint location_in_window = [event locationInWindow];
+	NSPoint location_in_view = [self convertPoint:location_in_window fromView:nil];
+
+	std::uint32_t x = static_cast<std::uint32_t>(std::clamp(location_in_view.x, 0.0, static_cast<double>(size.x)));
+	std::uint32_t y = static_cast<std::uint32_t>(std::clamp(location_in_view.y, 0.0, static_cast<double>(size.y)));
+
+	y = size.y - y;
+
+	self.window_->handle_mouse_update(RF::uivec2(x, y), RF::ivec2(delta_x, delta_y));
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+	[self handle_mouse_motion:event];
+}
+
+- (void)mouseDragged:(NSEvent *)event
+{
+	[self handle_mouse_motion:event];
+}
+
+- (void)rightMouseDragged:(NSEvent *)event
+{
+	[self handle_mouse_motion:event];
+}
+
+- (void)otherMouseDragged:(NSEvent *)event
+{
+	[self handle_mouse_motion:event];
 }
 
 - (void) keyDown:(NSEvent *) event
