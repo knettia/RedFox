@@ -92,13 +92,21 @@ const std::unordered_map<int, RF::mouse_key_t> other_mouse_key_map
 		return;
 	}
 
+	NSPoint location_in_window = [event locationInWindow];
+	NSPoint location_in_view = [self convertPoint:location_in_window fromView:nil];
+
+	// Reject the event if the mouse is outside
+	// Of the view's bounds, for consistency
+	// With how WinAPI handles cursor motion
+	if (!NSPointInRect(location_in_view, [self bounds]))
+	{
+		return;
+	}
+
 	RF::uivec2 size = self.window_->get_info().size;
 
 	CGFloat delta_x = event.deltaX;
 	CGFloat delta_y = event.deltaY;
-
-	NSPoint location_in_window = [event locationInWindow];
-	NSPoint location_in_view = [self convertPoint:location_in_window fromView:nil];
 
 	std::uint32_t x = static_cast<std::uint32_t>(std::clamp(location_in_view.x, 0.0, static_cast<double>(size.x)));
 	std::uint32_t y = static_cast<std::uint32_t>(std::clamp(location_in_view.y, 0.0, static_cast<double>(size.y)));
