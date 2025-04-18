@@ -123,7 +123,7 @@ namespace RF
 	}
 
 	using fvec3 =  vec<3, float>;
-	using ivec3 =  vec<3, int>;
-	using uivec3 = vec<3, unsigned int>;
+	using ivec3 =  vec<3, std::int32_t>;
+	using uivec3 = vec<3, std::uint32_t>;
 	using dvec3 =  vec<3, double>;
 }

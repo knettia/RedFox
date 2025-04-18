@@ -139,7 +139,7 @@ namespace RF
 	};
 
 	using fvec2  = vec<2, float>;
-	using ivec2  = vec<2, int>;
+	using ivec2  = vec<2, std::int32_t>;
 	using dvec2  = vec<2, double>;
-	using uivec2 = vec<2, unsigned int>;
+	using uivec2 = vec<2, std::uint32_t>;
 }
