@@ -25,6 +25,28 @@ namespace RF
 			this->z = static_cast<A>(z);
 		}
 
+		constexpr A &operator[](std::uint32_t index)
+		{
+			switch (index)
+			{
+				case (0): { return x; }
+				case (1): { return y; }
+				case (2): { return z; }
+				default: { throw RF::runtime_error("vec\\<3, A\\>[<0>] is not a valid access because it is out of bounds.", index); }
+			}
+		}
+		
+		constexpr const A &operator[](std::uint32_t index) const
+		{
+			switch (index)
+			{
+				case (0): { return x; }
+				case (1): { return y; }
+				case (2): { return z; }
+				default: { throw RF::runtime_error("vec\\<3, A\\>[<0>] is not a valid access because it is out of bounds.", index); }
+			}
+		}
+
 		template<typename T, RF_arithmetic_template(T)>
 		constexpr vec<3, A> operator+(const vec<3, T> &v) const
 		{

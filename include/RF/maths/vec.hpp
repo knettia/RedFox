@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include "RF/template.hpp" // RF_arithmetic_template
+#include "RF/exception.hpp" // RF::runtime_error
 
 namespace RF
 {
