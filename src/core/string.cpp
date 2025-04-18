@@ -114,28 +114,52 @@ std::string RF::basename(std::string_view str)
 std::string RF::format_view(std::string_view fmt, std::vector<std::string> list)
 {
 	std::ostringstream result;
-	size_t i = 0;
+	std::size_t i = 0;
+
 	while (i < fmt.size())
 	{
-		if (fmt[i] == '<')
+		if (fmt[i] == '\\')
 		{
-		size_t end = fmt.find('>', i);
-		if (end == std::string_view::npos)
-		{ throw std::runtime_error("mismatched tag, no closing bracket '>' found"); }
+			if (i + 1 < fmt.size() && (fmt[i + 1] == '<' || fmt[i + 1] == '>'))
+			{
+				result << fmt[i + 1];
+				i += 2;
+			}
+			else
+			{
+				result << fmt[i++];
+			}
+		}
+		else if (fmt[i] == '<')
+		{
+			std::size_t end = fmt.find('>', i);
 
-		std::string index_str = std::string(fmt.substr(i + 1, end - i - 1));
-		if (index_str.empty() || !RF::is_str_number(index_str))
-		{ throw std::runtime_error("invalid tag specifier <" + index_str + ">, have you meant to index a number?"); }
+			if (end == std::string_view::npos)
+			{
+				throw std::runtime_error("mismatched tag, no closing bracket '>' found");
+			}
 
-		size_t index = static_cast<size_t>(std::stoi(index_str));
-		if (index >= list.size())
-		{ throw std::runtime_error("argument index out of range for tag specifier <" + index_str + ">"); }
+			std::string index_str = std::string(fmt.substr(i + 1, end - i - 1));
 
-		result << list[index]; // not so safe, but faster than list.at(index)
-		i = end + 1;
+			if (index_str.empty() || !RF::is_str_number(index_str))
+			{
+				throw std::runtime_error("invalid tag specifier <" + index_str + ">, have you meant to index a number?");
+			}
+
+			std::size_t index = static_cast<std::size_t>(std::stoi(index_str));
+
+			if (index >= list.size())
+			{
+				throw std::runtime_error("argument index out of range for tag specifier <" + index_str + ">");
+			}
+
+			result << list[index];
+			i = end + 1;
 		}
 		else
-		{ result << fmt[i++]; }
+		{
+			result << fmt[i++];
+		}
 	}
 
 	return std::move(result).str();
