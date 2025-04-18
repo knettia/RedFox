@@ -1,18 +1,19 @@
 #pragma once
 
-#include "RF/maths/vec.hpp"
+#include "RF/maths/vecs.hpp"
+
+namespace RF::detail
+{
+	template<int v>
+	struct mat_guard
+	{
+		static constexpr bool valid = (v >= 2 && v <= 4);
+	};
+} // namespace RF::detail
 
 // THIS MAT IS: W.I.P.
 namespace RF
 {
-	namespace detail
-	{
-		template<int v>
-		struct mat_guard
-		{
-			static constexpr bool valid = (v >= 2 && v <= 4);
-		};
-	} // namespace detail
 
 	template<int n, int m, typename A, RF_arithmetic_template(A)>
 	requires(detail::mat_guard<n>::valid && detail::mat_guard<m>::valid)
@@ -22,7 +23,7 @@ namespace RF
 	struct alignas(16) mat<n, m, A>
 	{
 	private:
-		vec<m, A> columns[n];
+		RF::vec<m, A> columns[n];
 	public:
 		constexpr mat<n, m, A>()
 		{
