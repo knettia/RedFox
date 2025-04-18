@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RF/vec.hpp"
+#include "RF/maths/vec.hpp"
 
 namespace RF
 {

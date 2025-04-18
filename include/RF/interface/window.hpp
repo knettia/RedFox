@@ -1,7 +1,7 @@
 #pragma once
 
 // RedFox
-#include "RF/vec2.hpp" // RF::uivec2
+#include "RF/maths/vec2.hpp" // RF::uivec2
 #include "RF/reference_ptr.hpp"
 #include "RF/interface/graphics.hpp"
 #include "RF/interface/video_mode.hpp"
