@@ -111,6 +111,17 @@ namespace RF
 		}
 	};
 
+	template<typename A, RF_arithmetic_template(A)>
+	constexpr RF::vec<3, A> cross(const RF::vec<3, A> &a, const RF::vec<3, A> &b)
+	{
+		return RF::vec<3, A>
+		{
+			a.y * b.z - a.z * b.y,
+			a.z * b.x - a.x * b.z,
+			a.x * b.y - a.y * b.x
+		};
+	}
+
 	using fvec3 =  vec<3, float>;
 	using ivec3 =  vec<3, int>;
 	using uivec3 = vec<3, unsigned int>;
