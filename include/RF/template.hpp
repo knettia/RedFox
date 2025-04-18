@@ -26,7 +26,7 @@ namespace RF
 	typename = std::enable_if<RF::is_any_convertible<src_type, __VA_ARGS__>::value>
 
 #define RF_arithmetic_template(src_type) \
-	typename = std::enable_if_t<std::is_arithmetic<A>::value>
+	typename = std::enable_if_t<std::is_arithmetic<src_type>::value>
 
 #define RF_derived_template(derived_type, base_type) \
 	typename = std::enable_if_t<RF::is_derived_from<derived_type, base_type>::value>
