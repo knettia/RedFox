@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RF/maths/mat.hpp"
-#include "RF/maths/vec4.hpp"
+#include "RF/maths/vec/vec4.hpp"
 
 namespace RF
 {
