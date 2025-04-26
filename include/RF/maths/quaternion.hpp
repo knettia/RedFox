@@ -1,6 +1,7 @@
 #pragma once
 
-#include "RF/maths/mat.hpp"
+#include "RF/maths/mat/mat4x4.hpp"
+#include "RF/maths/mat/mat3x3.hpp"
 #include "RF/maths/vec/vec4.hpp"
 
 namespace RF
@@ -59,7 +60,7 @@ namespace RF
 			};
 		}
 
-		inline RF::mat<3, 3, float> to_mat3() const
+		inline RF::mat3x3 to_mat3() const
 		{
 			float x2 = x + x;
 			float y2 = y + y;
@@ -75,7 +76,7 @@ namespace RF
 			float wy = w * y2;
 			float wz = w * z2;
 
-			return RF::mat<3, 3, float>
+			return RF::mat3x3
 			{
 				{
 					{ 1.0f - (yy + zz), xy + wz, xz - wy },
@@ -85,11 +86,11 @@ namespace RF
 			};
 		}
 
-		inline RF::mat<4, 4, float> to_mat4() const
+		inline RF::mat4x4 to_mat4() const
 		{
-			RF::mat<3, 3, float> rot3 = to_mat3();
+			RF::mat3x3 rot3 = to_mat3();
 
-			return RF::mat<4, 4, float>
+			return RF::mat4x4
 			{
 				{
 					{ rot3[0][0], rot3[0][1], rot3[0][2], 0.0f },

@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include "RF/maths/mat.hpp"
-#include "RF/maths/vecs.hpp"
+#include "RF/maths/vec.hpp"
 #include "RF/template.hpp"
 
 namespace RF
