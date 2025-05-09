@@ -36,7 +36,7 @@ namespace RF::sys
 	#endif
 
 	#if defined (__LINUX__) || defined (__BSD_KERNEL__)
-	constexpr std::vector<std::string> linux_lib_dirs
+	const std::vector<std::string> linux_lib_dirs
 	{
 		"/lib",
 		"/usr/lib",
