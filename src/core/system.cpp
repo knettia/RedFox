@@ -543,6 +543,8 @@ RF::sys::cpu_info_t RF::sys::get_cpu_info()
 }
 
 #if defined (__LINUX__) || defined (__BSD_KERNEL_)
+#include <filesystem>
+
 std::optional<std::string> RF::sys::find_core_library(std::string name)
 {
 	// TODO: implement proper BSD as well
@@ -550,7 +552,7 @@ std::optional<std::string> RF::sys::find_core_library(std::string name)
 	{
 		try
 		{
-			for (const auto& entry : fs::directory_iterator(dir))
+			for (const auto& entry : std::filesystem::directory_iterator(dir))
 			{
 				if (entry.is_regular_file() && entry.path().filename().string().find(name) != std::string::npos)
 				{
