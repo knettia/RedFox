@@ -12,7 +12,7 @@ void RF::monitor_m::crash_dialogue_()
 	
 	auto gtk_lib_opt = RF::sys::find_core_library("gtk-3");
 
-	if (!gtk.has_value())
+	if (!gtk_lib_opt.has_value())
 	{
 		return; // no GTK graphical interface installed
 	}
@@ -54,7 +54,7 @@ void RF::monitor_m::exception_dialogue_(std::string_view title, std::string_view
 	
 	auto gtk_lib_opt = RF::sys::find_core_library("gtk-3");
 
-	if (!gtk.has_value())
+	if (!gtk_lib_opt.has_value())
 	{
 		return; // no GTK graphical interface installed
 	}
