@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RF/definitions.hpp"
 #include "RF/map.hpp"
 
 #include <string>
@@ -82,6 +83,17 @@ namespace RF
 			{ return std::string("Suppressed"); }
 		}
 	}
+
+#if defined (__LINUX__)
+	inline const RF::map<uint8_t, RF::virtual_key_t> x11_key_map
+	{
+		{ 38, RF::virtual_key_t::A },
+		{ 39, RF::virtual_key_t::S },
+		{ 56, RF::virtual_key_t::B },
+		{ 54, RF::virtual_key_t::C }
+	};
+    
+#endif
 
 #if defined (__APPLE__)
 	inline const RF::map<CGKeyCode, RF::virtual_key_t> cocoa_key_map
