@@ -1,6 +1,11 @@
 #include "RF/interface/delegate.hpp" // header
+#include "RF/interface/framework.hpp"
 
-#if defined (__APPLE__)
+#include "RF/definitions.hpp"
+
+#if defined (__LINUX__) || defined (__BSD_KERNEL__)
+#include "./delegate/x11_delegate.hpp"
+#elif defined (__APPLE__)
 #include "./delegate/cocoa_delegate.hpp"
 #elif defined (_WIN32)
 #include "./delegate/win32_delegate.hpp"
@@ -20,8 +25,6 @@ RF::delegate::delegate(RF::delegate_info info, const RF::video_mode_t mode) : in
 RF::delegate::~delegate()
 { created_ = false; }
 
-#include "RF/interface/framework.hpp"
-
 RF::delegate *RF::delegate::create(RF::delegate_info info)
 {
 	auto supported_APIs = RF::frameworks_supported();
@@ -30,12 +33,14 @@ RF::delegate *RF::delegate::create(RF::delegate_info info)
 
 	switch (info.framework)
 	{
-		#if defined (__linux)
-		// TODO: implement RF::x11_delegate and RF::wl_delegate
+		#if defined (__LINUX__)
+		case RF::framework_t::X11:
+		{ return new RF::x11_delegate(info); }
+		// TODO: implement RF::wl_delegate
 		#elif defined (__APPLE__)
 		case RF::framework_t::Cocoa:
 		{ return new RF::cocoa_delegate(info); }
-		#elif defined (_WIN32)
+		#elif defined (__WINDOWS__)
 		case RF::framework_t::Win32:
 		{ return new RF::win32_delegate(info); }
 		#endif
