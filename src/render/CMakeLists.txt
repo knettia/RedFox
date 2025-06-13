@@ -4,7 +4,8 @@ set(DELEGATE_SOURCES)
 set(WINDOW_SOURCES)
 
 if(UNIX AND NOT APPLE)
-	# TODO: set sources for build
+	set(DELEGATE_SOURCES "interface/delegate/x11_delegate.cpp")
+	set(WINDOW_SOURCES "interface/window/x11_window.cpp")
 elseif(APPLE)
 	set(DELEGATE_SOURCES "interface/delegate/cocoa_delegate.mm")
 	set(WINDOW_SOURCES "interface/window/cocoa_window.mm")
@@ -30,7 +31,15 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(redfox-render PRIVATE redfox-core)
 target_link_libraries(redfox-render PRIVATE Vulkan::Vulkan)
 
-if(APPLE)
+if(UNIX AND NOT APPLE)
+	find_package(X11 REQUIRED)
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(XRANDR REQUIRED xrandr)
+
+	target_link_libraries(redfox-render PRIVATE ${X11_LIBRARIES})
+	target_include_directories(redfox-render PRIVATE ${XRANDR_INCLUDE_DIRS})
+	target_link_libraries(redfox-render PRIVATE ${XRANDR_LIBRARIES})
+elseif(APPLE)
 
 	target_link_libraries(redfox-render PRIVATE "-framework Cocoa")
 	target_link_libraries(redfox-render PRIVATE "-framework Carbon")
