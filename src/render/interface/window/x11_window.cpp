@@ -4,13 +4,13 @@
 #include "RF/log.hpp"
 #include <X11/extensions/Xrandr.h>
 
-RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info) : RF::window(delegate, info), x11_delegate_(static_cast<RF::x11_delegate *>(delegate.ptr_get()))
+RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_info info) : RF::window(delegate, info), dyfuncs_(RF::get_x11_dyfuncs()), x11_delegate_(static_cast<RF::x11_delegate *>(delegate.ptr_get()))
 {
 	Display *display = this->x11_delegate_->get_x11_display();
 
 	int screen = DefaultScreen(display);
 
-	this->window_ = XCreateSimpleWindow(
+	this->window_ = this->dyfuncs_.x_create_simple_window(
 		display,
 		RootWindow(display, screen),
 		0,
@@ -22,7 +22,7 @@ RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_
 		WhitePixel(display, screen)
 	);
 
-	XSetStandardProperties(
+	this->dyfuncs_.x_set_standard_properties(
 		display,
 		this->window_,
 		info.title.c_str(),
@@ -34,7 +34,7 @@ RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_
 	);
 
 	// Remove ability of the user user resizing the window
-	XSizeHints *size_hints = XAllocSizeHints();
+	XSizeHints *size_hints = this->dyfuncs_.x_alloc_size_hints();
 	if (size_hints != nullptr)
 	{
 		size_hints->flags = PMinSize | PMaxSize;
@@ -43,16 +43,16 @@ RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_
 		size_hints->max_width = info.size.x;
 		size_hints->max_height = info.size.y;
 
-		XSetWMNormalHints(display, this->window_, size_hints);
-		XFree(size_hints);
+		this->dyfuncs_.x_set_wm_normal_hints(display, this->window_, size_hints);
+		this->dyfuncs_.x_free(size_hints);
 	}
 
 	// Remove ability of the user closing the window automatically
-	this->wm_delete_window_ = XInternAtom(display, "WM_DELETE_WINDOW", False);
-	XSetWMProtocols(display, this->window_, &wm_delete_window_, 1);
+	this->wm_delete_window_ = this->dyfuncs_.x_intern_atom(display, "WM_DELETE_WINDOW", False);
+	this->dyfuncs_.x_set_wm_protocols(display, this->window_, &wm_delete_window_, 1);
 
 	// Set up inputs and map window
-	XSelectInput(
+	this->dyfuncs_.x_select_input(
 		display,
 		this->window_,
 		ExposureMask
@@ -63,8 +63,8 @@ RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_
 		| FocusChangeMask
 	);
 
-	XMapWindow(display, this->window_);
-	XFlush(display);
+	this->dyfuncs_.x_map_window(display, this->window_);
+	this->dyfuncs_.x_flush(display);
 
 	this->x11_delegate_->register_x11_window(this->window_, this);
 }
@@ -136,7 +136,6 @@ void RF::x11_window::handle_x11_event(const XEvent &event)
 
 		case (FocusOut):
 		{
-			// If not hidden, consider it visible
 			if (this->get_state() != RF::window_state_t::Hidden)
 			{
 				this->update_window_state(RF::window_state_t::Visible);
@@ -152,7 +151,6 @@ void RF::x11_window::handle_x11_event(const XEvent &event)
 
 		case (MapNotify):
 		{
-			// After being mapped again, assume visible unless focused
 			if (this->get_state() != RF::window_state_t::Focused)
 			{
 				this->update_window_state(RF::window_state_t::Visible);
@@ -220,8 +218,8 @@ void RF::x11_window::close()
 
 		this->x11_delegate_->deregister_x11_window(this->window_);
 
-		XDestroyWindow(display, this->window_);
-		XFlush(display);
+		this->dyfuncs_.x_destroy_window(display, this->window_);
+		this->dyfuncs_.x_flush(display);
 
 		this->window_ = 0;
 	}
@@ -233,8 +231,8 @@ void RF::x11_window::focus()
 
 	if (this->window_)
 	{
-		XSetInputFocus(display, this->window_, RevertToParent, CurrentTime);
-		XFlush(display);
+		this->dyfuncs_.x_set_input_focus(display, this->window_, RevertToParent, CurrentTime);
+		this->dyfuncs_.x_flush(display);
 	}
 }
 
@@ -244,8 +242,8 @@ void RF::x11_window::minimise()
 
 	if (this->window_)
 	{
-		XIconifyWindow(display, this->window_, DefaultScreen(display));
-		XFlush(display);
+		this->dyfuncs_.x_iconify_window(display, this->window_, DefaultScreen(display));
+		this->dyfuncs_.x_flush(display);
 	}
 }
 
@@ -299,8 +297,8 @@ void RF::x11_window::handle_window_fullscreen_()
 
 	RF::video_mode_t mode = this->fullscreen_mode_;
 
-	Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
-	Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
+	Atom wm_state = this->dyfuncs_.x_intern_atom(display, "_NET_WM_STATE", False);
+	Atom fullscreen = this->dyfuncs_.x_intern_atom(display, "_NET_WM_STATE_FULLSCREEN", False);
 
 	XEvent xev {};
 	xev.xclient.type = ClientMessage;
@@ -315,8 +313,7 @@ void RF::x11_window::handle_window_fullscreen_()
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
 
-	XSendEvent
-	(
+	this->dyfuncs_.x_send_event(
 		display,
 		root,
 		False,
@@ -325,18 +322,18 @@ void RF::x11_window::handle_window_fullscreen_()
 	);
 
 	// --- Find and apply matching XRandR mode ---
-	XRRScreenResources *resources = XRRGetScreenResources(display, root);
+	XRRScreenResources *resources = this->dyfuncs_.xrandr_get_screen_resources(display, root);
 	if (resources == nullptr)
 	{
 		throw RF::engine_error("X11: Failed to get screen resources for fullscreen.");
 	}
-
-	RROutput primary_output = XRRGetOutputPrimary(display, root);
-	XRROutputInfo *output_info = XRRGetOutputInfo(display, resources, primary_output);
+	
+	RROutput primary_output = this->dyfuncs_.xrandr_get_output_primary(display, root);
+	XRROutputInfo *output_info = this->dyfuncs_.xrandr_get_output_info(display, resources, primary_output);
 	if (output_info == nullptr || output_info->crtc == None)
 	{
-		XRRFreeScreenResources(resources);
-		if (output_info) { XRRFreeOutputInfo(output_info); }
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
+		if (output_info) { this->dyfuncs_.xrandr_free_output_info(output_info); }
 		throw RF::engine_error("X11: No output or CRTC found for fullscreen.");
 	}
 
@@ -367,21 +364,20 @@ void RF::x11_window::handle_window_fullscreen_()
 
 	if (target_mode == None)
 	{
-		XRRFreeOutputInfo(output_info);
-		XRRFreeScreenResources(resources);
-		throw RF::engine_error("X11: No matching XRandR mode for requested fullscreen size, mode requested: <0>x<1>, desktop: <2>x<3>", mode.extent.x, mode.extent.y, this->x11_delegate_->video_mode().extent.x, this->x11_delegate_->video_mode().extent.y);
+		this->dyfuncs_.xrandr_free_output_info(output_info);
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
+		throw RF::engine_error("X11: No matching XRandR mode for requested fullscreen size");
 	}
 
-	XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(display, resources, output_info->crtc);
+	XRRCrtcInfo *crtc_info = this->dyfuncs_.xrandr_get_crct_info(display, resources, output_info->crtc);
 	if (crtc_info == nullptr)
 	{
-		XRRFreeOutputInfo(output_info);
-		XRRFreeScreenResources(resources);
+		this->dyfuncs_.xrandr_free_output_info(output_info);
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
 		throw RF::engine_error("X11: Failed to get CRTC info.");
 	}
 
-	Status result = XRRSetCrtcConfig
-	(
+	Status result = this->dyfuncs_.xrandr_set_crct_config(
 		display,
 		resources,
 		output_info->crtc,
@@ -394,16 +390,16 @@ void RF::x11_window::handle_window_fullscreen_()
 		1
 	);
 
-	XRRFreeCrtcInfo(crtc_info);
-	XRRFreeOutputInfo(output_info);
-	XRRFreeScreenResources(resources);
+	this->dyfuncs_.xrandr_free_crct_info(crtc_info);
+	this->dyfuncs_.xrandr_free_output_info(output_info);
+	this->dyfuncs_.xrandr_free_screen_resources(resources);
 
 	if (result != 0)
 	{
 		throw RF::engine_error("X11: Failed to apply fullscreen mode using XRandR.");
 	}
 
-	XFlush(display);
+	this->dyfuncs_.x_flush(display);
 }
 
 void RF::x11_window::handle_window_restore_()
@@ -411,8 +407,8 @@ void RF::x11_window::handle_window_restore_()
 	Display *display = this->x11_delegate_->get_x11_display();
 	Window root = DefaultRootWindow(display);
 
-	Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
-	Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
+	Atom wm_state = this->dyfuncs_.x_intern_atom(display, "_NET_WM_STATE", False);
+	Atom fullscreen = this->dyfuncs_.x_intern_atom(display, "_NET_WM_STATE_FULLSCREEN", False);
 
 	XEvent xev {};
 	xev.xclient.type = ClientMessage;
@@ -427,8 +423,7 @@ void RF::x11_window::handle_window_restore_()
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
 
-	XSendEvent
-	(
+	this->dyfuncs_.x_send_event(
 		display,
 		root,
 		False,
@@ -438,18 +433,18 @@ void RF::x11_window::handle_window_restore_()
 
 	RF::video_mode_t desktop_mode = this->x11_delegate_->video_mode();
 
-	XRRScreenResources *resources = XRRGetScreenResources(display, root);
+	XRRScreenResources *resources = this->dyfuncs_.xrandr_get_screen_resources(display, root);
 	if (resources == nullptr)
 	{
 		throw RF::engine_error("X11: Failed to get screen resources for fullscreen.");
 	}
-
-	RROutput primary_output = XRRGetOutputPrimary(display, root);
-	XRROutputInfo *output_info = XRRGetOutputInfo(display, resources, primary_output);
+	
+	RROutput primary_output = this->dyfuncs_.xrandr_get_output_primary(display, root);
+	XRROutputInfo *output_info = this->dyfuncs_.xrandr_get_output_info(display, resources, primary_output);
 	if (output_info == nullptr || output_info->crtc == None)
 	{
-		XRRFreeScreenResources(resources);
-		if (output_info) { XRRFreeOutputInfo(output_info); }
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
+		if (output_info) { this->dyfuncs_.xrandr_free_output_info(output_info); }
 		throw RF::engine_error("X11: No output or CRTC found for fullscreen.");
 	}
 
@@ -480,21 +475,20 @@ void RF::x11_window::handle_window_restore_()
 
 	if (target_mode == None)
 	{
-		XRRFreeOutputInfo(output_info);
-		XRRFreeScreenResources(resources);
+		this->dyfuncs_.xrandr_free_output_info(output_info);
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
 		throw RF::engine_error("X11: No matching XRandR mode for requested fullscreen size");
 	}
 
-	XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(display, resources, output_info->crtc);
+	XRRCrtcInfo *crtc_info = this->dyfuncs_.xrandr_get_crct_info(display, resources, output_info->crtc);
 	if (crtc_info == nullptr)
 	{
-		XRRFreeOutputInfo(output_info);
-		XRRFreeScreenResources(resources);
+		this->dyfuncs_.xrandr_free_output_info(output_info);
+		this->dyfuncs_.xrandr_free_screen_resources(resources);
 		throw RF::engine_error("X11: Failed to get CRTC info.");
 	}
 
-	Status result = XRRSetCrtcConfig
-	(
+	Status result = this->dyfuncs_.xrandr_set_crct_config(
 		display,
 		resources,
 		output_info->crtc,
@@ -507,16 +501,16 @@ void RF::x11_window::handle_window_restore_()
 		1
 	);
 
-	XRRFreeCrtcInfo(crtc_info);
-	XRRFreeOutputInfo(output_info);
-	XRRFreeScreenResources(resources);
+	this->dyfuncs_.xrandr_free_crct_info(crtc_info);
+	this->dyfuncs_.xrandr_free_output_info(output_info);
+	this->dyfuncs_.xrandr_free_screen_resources(resources);
 
 	if (result != 0)
 	{
 		throw RF::engine_error("X11: Failed to apply fullscreen mode using XRandR.");
 	}
 
-	XFlush(display);
+	this->dyfuncs_.x_flush(display);
 }
 
 void RF::x11_window::handle_virtual_key_down(RF::virtual_key_t key)
@@ -574,8 +568,8 @@ void RF::x11_window::handle_set_cursor_position_(const RF::uivec2 point)
 {
 	Display *display = this->x11_delegate_->get_x11_display();
 
-	XWarpPointer(display, None, this->window_, 0, 0, 0, 0, point.x, point.y);
-	XFlush(display);
+	this->dyfuncs_.x_warp_pointer(display, None, this->window_, 0, 0, 0, 0, point.x, point.y);
+	this->dyfuncs_.x_flush(display);
 
 	this->mouse_position_ = point;
 }
@@ -594,8 +588,8 @@ void RF::x11_window::handle_flag_update_(RF::window_flag_bit_t flags, bool enabl
 		{
 			Display *display = this->x11_delegate_->get_x11_display();
 
-			XUngrabPointer(display, CurrentTime);
-			XFlush(display);
+			this->dyfuncs_.x_ungrab_pointer(display, CurrentTime);
+			this->dyfuncs_.x_flush(display);
 		}
 	}
 

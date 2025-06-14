@@ -5,6 +5,7 @@
 
 // RedFox
 #include "RF/interface/delegate.hpp"
+#include "../dyfuncs/x11_dyfuncs.hpp"
 
 // X11
 #include <X11/Xlib.h>
@@ -18,11 +19,8 @@ namespace RF
 	class x11_delegate : public RF::delegate
 	{
 	protected:
-		struct
-		{
-			// X11 functions
-
-		} dyfuncs;
+		// X11 functions
+		const RF::x11_dyfuncs dyfuncs_;
 
 		Display *display_ = nullptr;
 		std::unordered_map<Window, RF::x11_window*> window_map_;

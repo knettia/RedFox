@@ -10,41 +10,46 @@ RF::x11_delegate::~x11_delegate()
 
 void RF::x11_delegate::terminate()
 {
-	XCloseDisplay(display_);
+	this->dyfuncs_.x_close_display(display_);
 }
 
 // ---- Video Mode ----
 RF::video_mode_t RF::x11_delegate::current_video_mode()
 {
-	Display *display = XOpenDisplay(nullptr);
+	// FIXME: because of the currenct initialising architecture,
+	//        We need to create our own dyfunc index in this function
+	auto dyfuncs_new = RF::get_x11_dyfuncs();
+
+	Display *display = dyfuncs_new.x_open_display(nullptr);
+
 	Window root = DefaultRootWindow(display);
 
-	XRRScreenResources *screen_resources = XRRGetScreenResources(display, root);
+	XRRScreenResources *screen_resources = dyfuncs_new.xrandr_get_screen_resources(display, root);
 	if (screen_resources == nullptr)
 	{
 		throw RF::engine_error("X11: Failed to retrieve screen resources for current video mode.");
 	}
 
-	RROutput primary_output = XRRGetOutputPrimary(display, root);
+	RROutput primary_output = dyfuncs_new.xrandr_get_output_primary(display, root);
 	if (primary_output == None)
 	{
-		XRRFreeScreenResources(screen_resources);
+		dyfuncs_new.xrandr_free_screen_resources(screen_resources);
 		throw RF::engine_error("X11: No primary output found.");
 	}
 
-	XRROutputInfo *output_info = XRRGetOutputInfo(display, screen_resources, primary_output);
+	XRROutputInfo *output_info = dyfuncs_new.xrandr_get_output_info(display, screen_resources, primary_output);
 	if (output_info == nullptr || output_info->crtc == None)
 	{
-		XRRFreeScreenResources(screen_resources);
-		if (output_info) { XRRFreeOutputInfo(output_info); }
+		dyfuncs_new.xrandr_free_screen_resources(screen_resources);
+		if (output_info) { dyfuncs_new.xrandr_free_output_info(output_info); }
 		throw RF::engine_error("X11: No active CRTC on primary output.");
 	}
 
-	XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(display, screen_resources, output_info->crtc);
+	XRRCrtcInfo *crtc_info = dyfuncs_new.xrandr_get_crct_info(display, screen_resources, output_info->crtc);
 	if (crtc_info == nullptr)
 	{
-		XRRFreeOutputInfo(output_info);
-		XRRFreeScreenResources(screen_resources);
+		dyfuncs_new.xrandr_free_output_info(output_info);
+		dyfuncs_new.xrandr_free_screen_resources(screen_resources);
 		throw RF::engine_error("X11: Failed to retrieve CRTC info.");
 	}
 
@@ -68,9 +73,9 @@ RF::video_mode_t RF::x11_delegate::current_video_mode()
 		static_cast<std::double_t>(refresh_rate)
 	};
 
-	XRRFreeCrtcInfo(crtc_info);
-	XRRFreeOutputInfo(output_info);
-	XRRFreeScreenResources(screen_resources);
+	dyfuncs_new.xrandr_free_crct_info(crtc_info);
+	dyfuncs_new.xrandr_free_output_info(output_info);
+	dyfuncs_new.xrandr_free_screen_resources(screen_resources);
 
 	return result;
 }
@@ -80,7 +85,7 @@ std::vector<RF::video_mode_t> RF::x11_delegate::enumerate_video_modes()
 	Display *display = this->get_x11_display();
 	Window root = DefaultRootWindow(display);
 
-	XRRScreenResources *screen_resources = XRRGetScreenResources(display, root);
+	XRRScreenResources *screen_resources = this->dyfuncs_.xrandr_get_screen_resources(display, root);
 	if (screen_resources == nullptr)
 	{
 		return {};
@@ -109,7 +114,7 @@ std::vector<RF::video_mode_t> RF::x11_delegate::enumerate_video_modes()
 		modes.push_back(vm);
 	}
 
-	XRRFreeScreenResources(screen_resources);
+	this->dyfuncs_.xrandr_free_screen_resources(screen_resources);
 	return modes;
 }
 
@@ -124,8 +129,10 @@ Display *RF::x11_delegate::get_x11_display()
 	return this->display_;
 }
 
-RF::x11_delegate::x11_delegate(RF::delegate_info info) : display_(XOpenDisplay(nullptr)), RF::delegate(info, this->current_video_mode())
-{ }
+RF::x11_delegate::x11_delegate(RF::delegate_info info) : dyfuncs_(RF::get_x11_dyfuncs()), RF::delegate(info, this->current_video_mode())
+{
+	this->display_ = this->dyfuncs_.x_open_display(nullptr);
+}
 
 void RF::x11_delegate::register_x11_window(Window x_window, RF::x11_window *window)
 {
@@ -139,10 +146,10 @@ void RF::x11_delegate::deregister_x11_window(Window x_window)
 
 void RF::x11_delegate::poll_events()
 {
-	while (XPending(this->display_) > 0)
+	while (this->dyfuncs_.x_pending(this->display_) > 0)
 	{
 		XEvent event;
-		XNextEvent(this->display_, &event);
+		this->dyfuncs_.x_next_event(this->display_, &event);
 
 		this->dispatch_x11_event(event);
 	}

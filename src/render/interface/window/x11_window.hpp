@@ -7,6 +7,8 @@
 #include "RF/interface/video_mode.hpp"
 #include "RF/interface/window.hpp"
 
+#include "../dyfuncs/x11_dyfuncs.hpp"
+
 // X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -19,6 +21,8 @@ namespace RF
 	class x11_window : public RF::window
 	{
 	private:
+		const RF::x11_dyfuncs dyfuncs_;
+
 		RF::reference_ptr<x11_delegate> x11_delegate_;
 
 		Window window_ = 0;
