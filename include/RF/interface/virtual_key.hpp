@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RF/definitions.hpp"
 #include "RF/map.hpp"
 
 #include <string>
@@ -83,7 +84,94 @@ namespace RF
 		}
 	}
 
-#if defined (__APPLE__)
+#if defined (__LINUX__)
+	inline const RF::map<uint8_t, RF::virtual_key_t> x11_key_map
+	{
+		{ 38, RF::virtual_key_t::A },
+		{ 56, RF::virtual_key_t::B },
+		{ 54, RF::virtual_key_t::C },
+		{ 54, RF::virtual_key_t::C },
+		{ 40, RF::virtual_key_t::D },
+		{ 26, RF::virtual_key_t::E },
+		{ 41, RF::virtual_key_t::F },
+		{ 42, RF::virtual_key_t::G },
+		{ 43, RF::virtual_key_t::H },
+		{ 44, RF::virtual_key_t::J },
+		{ 45, RF::virtual_key_t::K },
+		{ 46, RF::virtual_key_t::L },
+		{ 58, RF::virtual_key_t::M },
+		{ 57, RF::virtual_key_t::N },
+		{ 32, RF::virtual_key_t::O },
+		{ 33, RF::virtual_key_t::P },
+		{ 24, RF::virtual_key_t::Q },
+		{ 27, RF::virtual_key_t::R },
+		{ 39, RF::virtual_key_t::S },
+		{ 28, RF::virtual_key_t::T },
+		{ 30, RF::virtual_key_t::U },
+		{ 55, RF::virtual_key_t::V },
+		{ 25, RF::virtual_key_t::W },
+		{ 53, RF::virtual_key_t::X },
+		{ 29, RF::virtual_key_t::Y },
+		{ 52, RF::virtual_key_t::Z },
+		{ 19, RF::virtual_key_t::Key0 },
+		{ 10, RF::virtual_key_t::Key1 },
+		{ 11, RF::virtual_key_t::Key2 },
+		{ 12, RF::virtual_key_t::Key3 },
+		{ 13, RF::virtual_key_t::Key4 },
+		{ 14, RF::virtual_key_t::Key5 },
+		{ 15, RF::virtual_key_t::Key6 },
+		{ 16, RF::virtual_key_t::Key7 },
+		{ 17, RF::virtual_key_t::Key8 },
+		{ 18, RF::virtual_key_t::Key9 },
+		{ 90, RF::virtual_key_t::Pad0 },
+		{ 87, RF::virtual_key_t::Pad1 },
+		{ 88, RF::virtual_key_t::Pad2 },
+		{ 89, RF::virtual_key_t::Pad3 },
+		{ 83, RF::virtual_key_t::Pad4 },
+		{ 84, RF::virtual_key_t::Pad5 },
+		{ 85, RF::virtual_key_t::Pad6 },
+		{ 79, RF::virtual_key_t::Pad7 },
+		{ 80, RF::virtual_key_t::Pad8 },
+		{ 81, RF::virtual_key_t::Pad9 },
+		{ 9, RF::virtual_key_t::Escape },
+		{ 36, RF::virtual_key_t::Return },
+		{ 104, RF::virtual_key_t::PadReturn },
+		{ 22, RF::virtual_key_t::Backspace },
+		{ 23, RF::virtual_key_t::Tab },
+		{ 65, RF::virtual_key_t::Space },
+		{ 50, RF::virtual_key_t::LShift },
+		{ 62, RF::virtual_key_t::RShift },
+		{ 37, RF::virtual_key_t::LControl },
+		{ 105, RF::virtual_key_t::RControl },
+		{ 133, RF::virtual_key_t::LSuper },
+		{ 134, RF::virtual_key_t::RSuper },
+		{ 64, RF::virtual_key_t::Alt },
+		{ 108, RF::virtual_key_t::AltGr },
+		{ 67, RF::virtual_key_t::F1 },
+		{ 68, RF::virtual_key_t::F2 },
+		{ 69, RF::virtual_key_t::F3 },
+		{ 70, RF::virtual_key_t::F4 },
+		{ 71, RF::virtual_key_t::F5 },
+		{ 72, RF::virtual_key_t::F6 },
+		{ 73, RF::virtual_key_t::F7 },
+		{ 74, RF::virtual_key_t::F8 },
+		{ 75, RF::virtual_key_t::F9 },
+		{ 76, RF::virtual_key_t::F10 },
+		{ 95, RF::virtual_key_t::F11 },
+		{ 96, RF::virtual_key_t::F12 },
+		// TODO: support up to F20
+		{ 110, RF::virtual_key_t::Home },
+		{ 115, RF::virtual_key_t::End },
+		{ 118, RF::virtual_key_t::Insert },
+		{ 119, RF::virtual_key_t::Delete },
+		{ 112, RF::virtual_key_t::PageUp },
+		{ 117, RF::virtual_key_t::PageDown },
+		{ 111, RF::virtual_key_t::ArrowUp },
+		{ 116, RF::virtual_key_t::ArrowDown },
+		{ 113, RF::virtual_key_t::ArrowLeft },
+		{ 114, RF::virtual_key_t::ArrowRight },
+	};
+#elif defined (__APPLE__)
 	inline const RF::map<CGKeyCode, RF::virtual_key_t> cocoa_key_map
 	{
 		{kVK_ANSI_A, RF::virtual_key_t::A},

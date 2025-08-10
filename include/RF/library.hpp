@@ -7,34 +7,34 @@
 
 #if defined (__linux__) || defined (__APPLE__)
 #include <dlfcn.h>
-#elif defined(_WIN32) 
+#elif defined(_WIN32)
 #include <windows.h>
 #endif
 
 namespace RF
 {
+	class lib
+	{
+	private:
+		void *handle_ = nullptr;
+	public:
+		explicit lib(const std::string_view libname);
+		~lib();
+
+		// inline
+		template<typename T>
+		std::function<T> get_function(const std::string_view symbol);
+
+		template<typename T>
+		T get_function_raw(const std::string_view symbol);
+
+		bool is_valid() const;
+	};
+
 	class library_m // static
 	{
 	private:
-		class lib
-		{
-		private:
-			void *handle_ = nullptr;
-		public:
-			explicit lib(const std::string_view libname);
-			~lib();
-
-			// inline
-			template<typename T>
-			std::function<T> get_function(const std::string_view symbol);
-
-			template<typename T>
-			T get_function_raw(const std::string_view symbol);
-
-			bool is_valid() const;
-		};
-
-		static std::unordered_map<std::string, std::shared_ptr<lib>> libraries_;
+		static std::unordered_map<std::string, std::shared_ptr<RF::lib>> libraries_;
 	public:
 		library_m() = delete;
 		~library_m() = delete;

@@ -1,7 +1,7 @@
 #include "RF/string.hpp" // RF::format_view
 
 template<typename T>
-inline T RF::library_m::lib::get_function_raw(const std::string_view symbol)
+inline T RF::lib::get_function_raw(const std::string_view symbol)
 {
 	#if defined (__linux__) || defined (__APPLE__)
 	void *func = dlsym(handle_, symbol.data());
@@ -19,7 +19,7 @@ inline T RF::library_m::lib::get_function_raw(const std::string_view symbol)
 }
 
 template<typename T>
-inline std::function<T> RF::library_m::lib::get_function(const std::string_view symbol)
+inline std::function<T> RF::lib::get_function(const std::string_view symbol)
 {
 	#if defined (__linux__) || defined (__APPLE__)
 	void *func = dlsym(handle_, symbol.data());
