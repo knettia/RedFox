@@ -18,36 +18,37 @@ endif()
 
 set(INTERFACE_SOURCES ${INTERFACE_SOURCES} "interface/window.cpp" ${WINDOW_SOURCES} "interface/delegate.cpp" ${DELEGATE_SOURCES})
 
-add_library(redfox-render SHARED ${INTERFACE_SOURCES})
+add_library(render SHARED ${INTERFACE_SOURCES})
 
 # include
-target_include_directories(redfox-render PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(render PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+	$<INSTALL_INTERFACE:include>)
 
 if(UNIX)
-	target_include_directories(redfox-render PRIVATE /usr/local/include)
+	target_include_directories(render PUBLIC /usr/local/include)
 endif()
 
 # find for link
 find_package(Vulkan REQUIRED)
 
 # link
-target_link_libraries(redfox-render PRIVATE redfox-core)
-target_link_libraries(redfox-render PRIVATE Vulkan::Vulkan)
+target_link_libraries(render PUBLIC core)
+target_link_libraries(render PUBLIC Vulkan::Vulkan)
 
 if(UNIX AND NOT APPLE)
 	find_package(X11 REQUIRED)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(XRANDR REQUIRED xrandr)
 
-	# target_link_libraries(redfox-render PRIVATE ${X11_LIBRARIES})
-	target_include_directories(redfox-render PRIVATE ${X11_INCLUDE_DIRS})
-	target_include_directories(redfox-render PRIVATE ${XRANDR_INCLUDE_DIRS})
-	# target_link_libraries(redfox-render PRIVATE ${XRANDR_LIBRARIES})
+	target_include_directories(render PUBLIC ${X11_INCLUDE_DIRS})
+	target_include_directories(render PUBLIC ${XRANDR_INCLUDE_DIRS})
 elseif(APPLE)
-
-	target_link_libraries(redfox-render PRIVATE "-framework Cocoa")
-	target_link_libraries(redfox-render PRIVATE "-framework Carbon")
+	target_link_libraries(render PUBLIC "-framework Cocoa")
+	target_link_libraries(render PUBLIC "-framework Carbon")
 	
-	target_link_libraries(redfox-render PRIVATE "-framework Metal")
-	target_link_libraries(redfox-render PRIVATE "-framework QuartzCore")
+	target_link_libraries(render PUBLIC "-framework Metal")
+	target_link_libraries(render PUBLIC "-framework QuartzCore")
 endif()
+
+set_target_properties(render PROPERTIES OUTPUT_NAME "redfox-render")

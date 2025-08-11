@@ -1,12 +1,16 @@
 # compile
-add_library(redfox-net SHARED "connection.cpp" "socket.cpp")
+add_library(net SHARED "connection.cpp" "socket.cpp")
 
 # include
-target_include_directories(redfox-net PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(net PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../include>
+	$<INSTALL_INTERFACE:include>)
 
 if(UNIX)
-	target_include_directories(redfox-net PRIVATE /usr/local/include)
+	target_include_directories(net PUBLIC /usr/local/include)
 endif()
 
 # link
-target_link_libraries(redfox-net PRIVATE redfox-core)
+target_link_libraries(net PUBLIC core)
+
+set_target_properties(net PROPERTIES OUTPUT_NAME "redfox-net")
