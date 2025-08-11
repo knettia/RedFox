@@ -1,10 +1,10 @@
 #define RF_NET_CLIENT
 #define RF_NET_SERVER
-#include "RedFox/net/types/socket.hpp" // header
+#include "RF/net/types/socket.hpp" // header
 
-#include "RedFox/net/base/utils.hpp"
-#include "RedFox/net/types/connection.hpp"
-#include "RedFox/net/types/message.hpp"
+#include "RF/net/base/utils.hpp"
+#include "RF/net/types/connection.hpp"
+#include "RF/net/types/message.hpp"
 
 #include "RF/log.hpp"
 

@@ -1,8 +1,8 @@
-#include "RedFox/net/types/connection.hpp" // header
+#include "RF/net/types/connection.hpp" // header
 
-#include "RedFox/net/base/utils.hpp"
-#include "RedFox/net/types/socket.hpp"
-#include "RedFox/net/types/message.hpp"
+#include "RF/net/base/utils.hpp"
+#include "RF/net/types/socket.hpp"
+#include "RF/net/types/message.hpp"
 
 RF::net::connection::connection(RF::net::socket &socket)
 :
