@@ -3,7 +3,7 @@
 #include <span>
 #include <vector>
 
-#include "RedFox/net/types/body.hpp"
+#include "RF/net/types/body.hpp"
 #include "RF/template.hpp"
 
 namespace RF::net
