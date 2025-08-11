@@ -16,4 +16,5 @@ include/vk_video
 .cache
 build
 bin
+lib
 crash.log
