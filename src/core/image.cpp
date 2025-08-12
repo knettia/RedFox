@@ -10,17 +10,9 @@
 
 RF::image_data_t::image_data_t(const std::uint8_t *src, std::size_t n)
 {
-	this->data.size = n;
-	this->data.raw = new std::byte[n];
-	for (std::size_t i = 0; i < n; ++i)
-	{
-		this->data.raw[i] = static_cast<std::byte>(src[i]);
-	}
-}
-
-RF::image_data_t::~image_data_t()
-{
-	delete[] this->data.raw;
+	this->bytes.clear();
+	this->bytes.resize(n);
+	memcpy(this->bytes.data(), src, n);
 }
 
 RF::image_data_t RF::load_image(RF::image_t type, std::string_view file)
