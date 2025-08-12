@@ -40,19 +40,21 @@ install(EXPORT RedFoxTargets
 	DESTINATION lib/cmake/RedFox)
 
 include(CMakePackageConfigHelpers)
+
 write_basic_package_version_file(
 	"${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfigVersion.cmake"
 	VERSION ${PROJECT_VERSION}
-	COMPATIBILITY SameMajorVersion)
+	COMPATIBILITY SameMajorVersion
+)
 
-install(FILES
-	"${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfigVersion.cmake"
-	DESTINATION lib/cmake/RedFox)
-
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfig.cmake" "
-include(\"\${CMAKE_CURRENT_LIST_DIR}/RedFoxTargets.cmake\")
-check_required_components(RedFox)")
+configure_package_config_file(
+	"${CMAKE_CURRENT_SOURCE_DIR}/RedFoxConfig.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfig.cmake"
+	INSTALL_DESTINATION lib/cmake/RedFox
+)
 
 install(FILES
 	"${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfig.cmake"
-	DESTINATION lib/cmake/RedFox)
+	"${CMAKE_CURRENT_BINARY_DIR}/RedFoxConfigVersion.cmake"
+	DESTINATION lib/cmake/RedFox
+)
