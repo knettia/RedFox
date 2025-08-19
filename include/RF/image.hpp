@@ -23,7 +23,7 @@ namespace RF
 		RF::uivec2 size;
 		RF::image_t type;
 
-		image_data_t(const image_data_t &other) = default; // Or implement deep copy
+		image_data_t(const image_data_t &other) = default;
 		image_data_t &operator=(const image_data_t &other) = default;
 
 		image_data_t(const std::uint8_t *src, std::size_t n);
