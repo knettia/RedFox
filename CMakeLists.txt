@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(KTX_SUPPORT "Compile RF::load_image with KTX support" ON)
+option(DDS_SUPPORT "Compile RF::load_image with DDS support" ON)
 
 add_subdirectory(src) # redfox-core, redfox-render, redfox-net
 add_subdirectory(test) # compile test sources

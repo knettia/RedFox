@@ -38,6 +38,10 @@ if(KTX_SUPPORT)
 	target_link_libraries(core PUBLIC KTX::ktx)
 endif()
 
+if(DDS_SUPPORT)
+	target_compile_definitions(core PUBLIC DDS_SUPPORT)
+endif()
+
 if(APPLE)
 	target_link_libraries(core PUBLIC "-framework Cocoa")
 elseif(WIN32)
