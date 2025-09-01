@@ -42,6 +42,10 @@ if(DDS_SUPPORT)
 	target_compile_definitions(core PUBLIC DDS_SUPPORT)
 endif()
 
+find_package(OpenEXR REQUIRED)
+include_directories(${OpenEXR_INCLUDE_DIRS})
+target_link_libraries(core PUBLIC OpenEXR::OpenEXR)
+
 if(APPLE)
 	target_link_libraries(core PUBLIC "-framework Cocoa")
 elseif(WIN32)

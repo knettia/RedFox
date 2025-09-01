@@ -13,6 +13,7 @@ namespace RF
 		None = 0x0,
 		KTX,
 		DDS,
+		EXR, // newly added
 		BIT,
 		TGA, // newly added
 		PNG,
@@ -26,6 +27,7 @@ namespace RF
 		case (image_type::None): return "None";
 		case (image_type::KTX): return "KTX";
 		case (image_type::DDS): return "DDS";
+		case (image_type::EXR): return "EXR";
 		case (image_type::BIT): return "BIT";
 		case (image_type::TGA): return "TGA";
 		case (image_type::PNG): return "PNG";
