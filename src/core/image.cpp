@@ -38,14 +38,14 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 	{
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(true);
-		std::uint8_t *data = stbi_load(file.data(), &width, &height, &channels, 0);
+		std::uint8_t *data = stbi_load(file.data(), &width, &height, &channels, 3);
 
 		if (!data) throw RF::engine_error("Failed to get image data from file '<0>'", file);
 
 		RF::image_format format = (channels == 4) ? RF::image_format::RGBA8 : RF::image_format::RGB8;
-		std::size_t data_size = static_cast<std::size_t>(width * height * channels);
+		auto data_size = static_cast<std::size_t>(width * height * channels);
 
-		image_data_t result = image_data_t::from_raw(data, data_size, RF::uivec2(width, height), type, format);
+		auto result = image_data_t::from_raw(data, data_size, RF::uivec2(width, height), type, format);
 
 		stbi_image_free(data);
 		return result;
