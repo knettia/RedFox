@@ -134,7 +134,7 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 		ktx_uint8_t *data = ktxTexture_GetData(kTexture);
 		ktx_size_t data_size = ktxTexture_GetDataSize(kTexture);
 
-		// For now assume RGBA8, could be extended with more precise format parsing
+		// For now assume RGBA8, could be extended with more prcise format parsing
 		image_data_t result = image_data_t::from_raw(data, data_size, RF::uivec2(kTexture->baseWidth, kTexture->baseHeight), type, RF::image_format::RGBA8);
 
 		ktxTexture_Destroy(kTexture);
