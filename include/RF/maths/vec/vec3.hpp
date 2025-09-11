@@ -131,6 +131,12 @@ namespace RF
 			float l = length();
 			return *this / l;
 		}
+
+		template<typename D, typename T, RF_arithmetic_template(D), RF_arithmetic_template(T)>
+		constexpr D dot(const vec<3, T> &v) const
+		{
+			return static_cast<D>(x) * v.x + static_cast<D>(y) * v.y + static_cast<D>(z) * v.z;
+		}
 	};
 
 	template<typename A, RF_arithmetic_template(A)>
