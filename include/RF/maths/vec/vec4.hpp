@@ -134,7 +134,7 @@ namespace RF
 		}
 
 		template<typename D, typename T, RF_arithmetic_template(D), RF_arithmetic_template(T)>
-		constexpr D dot(const vec<2, T> &v) const
+		constexpr D dot(const vec<4, T> &v) const
 		{
 			return static_cast<D>(x) * v.x + static_cast<D>(y) * v.y + static_cast<D>(z) * v.z + static_cast<D>(w) * v.w;
 		}
