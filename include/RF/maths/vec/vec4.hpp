@@ -120,13 +120,11 @@ namespace RF
 			return (x == a) && (y == a) && (z == a) && (w == a);
 		}
 
-		// engine needs c++20 to compile anyway
 		constexpr float length() const
 		{
 			return std::sqrt(x * x + y * y + z * z + w * w);
 		}
 
-		// engine needs c++20 to compile anyway
 		constexpr vec<4, A> unit() const
 		{
 			float l = length();

@@ -112,13 +112,11 @@ namespace RF
 			return vec<2, A>(x / s, y / s);
 		}
 		
-		// engine needs c++20 to compile anyway
 		constexpr float length() const
 		{
 			return std::sqrt(x * x + y * y);
 		}
 		
-		// engine needs c++20 to compile anyway
 		constexpr vec<2, A> unit() const
 		{
 			float l = length();
