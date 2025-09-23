@@ -18,7 +18,21 @@ endif()
 
 set(INTERFACE_SOURCES ${INTERFACE_SOURCES} "interface/window.cpp" ${WINDOW_SOURCES} "interface/delegate.cpp" ${DELEGATE_SOURCES})
 
-add_library(render SHARED ${INTERFACE_SOURCES})
+
+set(VULKAN_SOURCES
+    "vulkan/instance.cpp"
+    "vulkan/device.cpp"
+    "vulkan/debugger.cpp"
+    "vulkan/buffer.cpp"
+    "vulkan/image.cpp"
+    "vulkan/framebuffer.cpp"
+    "vulkan/render_pass.cpp"
+    "vulkan/descriptor_pool.cpp"
+    "vulkan/descriptor_set.cpp"
+    "vulkan/pipeline.cpp"
+    "vulkan/swapchain.cpp")
+
+add_library(render SHARED ${INTERFACE_SOURCES} ${VULKAN_SOURCES})
 
 # include
 target_include_directories(render PUBLIC
