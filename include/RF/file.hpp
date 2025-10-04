@@ -21,7 +21,6 @@ namespace RF
 
 		static bool exists(const std::string_view filename);
 
-		// TODO: make this void and throw exception
 		static bool create_directory(const std::string_view path);
 
 		static void create_file(const std::string_view filename);
