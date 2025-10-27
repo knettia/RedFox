@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstring>
+
 #include "RF/log.hpp"
 
 namespace RF::net
@@ -21,4 +23,7 @@ namespace RF::net
 		std::memcpy(buffer, &src, sizeof(S));
 		return buffer;
 	}
+
+	std::array<std::uint8_t, 8> native_to_big_endian_ulong(ulong v);
+	ulong big_endian_to_native_ulong(const std::uint8_t *buf);
 }
