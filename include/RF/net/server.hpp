@@ -6,11 +6,6 @@
 
 namespace RF::net::server
 {
-	using steady_clock = std::chrono::steady_clock;
-	using time_point = std::chrono::steady_clock::time_point;
-	using milliseconds = std::chrono::milliseconds;
-	using seconds = std::chrono::seconds;
-
 	enum client_state
 	{
 		Aroused,
