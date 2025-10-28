@@ -1,16 +1,15 @@
 #pragma once
 
-#include <span>
-#include <vector>
+#include <cstdint>
+#include <sys/types.h>
 
-#include "RF/net/types/body.hpp"
-#include "RF/template.hpp"
+#include <vector>
 
 namespace RF::net
 {
-	typedef std::uint64_t ulong_t;
+	using body = std::vector<std::uint8_t>;
 
-	enum internal_message_id_t : ulong_t
+	enum internal_message_id_t : ulong
 	{
 		Application = 0,
 		Disconnect  = 1,
@@ -21,13 +20,13 @@ namespace RF::net
 	struct internal_message
 	{
 		internal_message_id_t id;
-		ulong_t app_id;
+		ulong app_id;
 		std::vector<RF::net::body> payload;
 	};
 
 	struct message
 	{
-		ulong_t id;
+		ulong id;
 		std::vector<RF::net::body> payload;
 	};
 } // namespace RF::net
