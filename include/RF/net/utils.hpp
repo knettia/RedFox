@@ -1,9 +1,12 @@
 #pragma once
 
+#include <asio.hpp>
+#include <vector>
 #include <array>
 #include <cstring>
 
 #include "RF/log.hpp"
+#include "RF/net/message.hpp"
 
 namespace RF::net
 {
@@ -24,6 +27,31 @@ namespace RF::net
 		return buffer;
 	}
 
+	struct asio_endpoint_hash
+	{
+		std::size_t operator()(asio::ip::udp::endpoint const &ep) const noexcept
+		{
+			std::size_t h1 = std::hash<std::string>()(ep.address().to_string());
+			std::size_t h2 = std::hash<unsigned short>()(ep.port());
+			return h1 ^ (h2 << 1);
+		}
+	};
+
+	struct asio_endpoint_equal
+	{
+		bool operator()(asio::ip::udp::endpoint const &a, asio::ip::udp::endpoint const &b) const noexcept
+		{
+			return a.address() == b.address() && a.port() == b.port();
+		}
+	};
+
 	std::array<std::uint8_t, 8> native_to_big_endian_ulong(ulong v);
 	ulong big_endian_to_native_ulong(const std::uint8_t *buf);
+
+	std::vector<std::uint8_t> serialize_internal(const RF::net::internal_message &msg);
+	std::vector<std::uint8_t> serialize_public(const RF::net::message &msg);
+
+	RF::net::internal_message deserialize_internal(const std::uint8_t *data, std::size_t len);
+
+	RF::net::message to_public(const RF::net::internal_message &im);
 }
