@@ -70,7 +70,6 @@
 #define __STDLIB_MSVCXX__  // MSVC STL
 #endif
 
-
 #include <cstdint>
 
 namespace RF::def
@@ -82,14 +81,5 @@ namespace RF::def
 		std::size_t patch;
 	};
 
-	inline RF::def::version_info version()
-	{
-		return
-		{
-			0,
-			3,
-			1
-		};
-	}
-
+	RF::def::version_info RF_version();
 } // namespace RF::def
