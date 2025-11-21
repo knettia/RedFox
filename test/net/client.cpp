@@ -1,103 +1,102 @@
-// local
-#include "./internal.hpp"
-
 // std
-#include <vector>
-#include <span>
+#include <thread>
 
 // RedFox
-#include <RedFox/core/base.hpp>
-#include <RedFox/render/interface.hpp>
+#include <RF/log.hpp>
+#include <RF/net/client.hpp>
 
-#define RF_NET_CLIENT
-#include <RedFox/net/net.hpp>
+enum class msg_t : std::uint32_t
+{
+	Ping,
+	PingAll
+};
 
 bool process_running { true };
 
-RF::net::socket client_socket;
-
-// TODO: use of string address and port, create endpoint internally
-RF::net::connection server_connection(client_socket, "127.0.0.1", 5503);
-
-void on_message(RF::net::connection connection, RF::net::message message)
-{
-	switch (message.id<internal::msg_t>())
-	{
-		case (internal::msg_t::Ping):
-		{
-			RF::ignoramus::logf(RF::ignoramus_t::info, "Received ping from server");
-			break;
-		}
-		
-		default:
-		{
-			RF::ignoramus::logf(RF::ignoramus_t::warning, "Unaccounted message with id <0>", message.id());
-			break;
-		}
-	}
-}
-
 void on_terminate()
-{ process_running = false; }
-
-void on_close(RF::window *window)
-{ on_terminate(); }
-
-void handle_input(RF::window *window, RF::virtual_key_t key, RF::key_state_t state)
 {
-	if (state == RF::key_state_t::Triggered)
-	{
-		if (key == RF::virtual_key_t::A)
-		{
-			RF::net::message message(internal::msg_t::Ping);
-			server_connection.send(message);
-		}
-		
-		if (key == RF::virtual_key_t::M)
-		{
-			RF::net::message message(internal::msg_t::PingAll);
-			server_connection.send(message);
-		}
-	}
+	process_running = false;
 }
 
 int main()
 {
-	// set-up delegate
-	RF::delegate_info delegate_info
+	asio::io_context io;
+	RF::net::client::client_m client(io, "127.0.0.1", 5503, "TestClient");
+
+	client.on_receive = [](const RF::net::message &msg)
 	{
-		.name = "RedFox Delegate",
-		.framework = RF::framework_t::Cocoa
+		auto id = static_cast<msg_t>(msg.id);
+		switch (id)
+		{
+			case msg_t::Ping:
+			{
+				RF::logf::info("Received Ping from server");
+				break;
+			}
+
+			default:
+			{
+				RF::logf::warn("Received unknown message (<0>)", (std::uint32_t)id);
+				break;
+			}
+		}
 	};
 
-	RF::delegate *delegate { RF::delegate::create(delegate_info) };
-	delegate->set_terminate_callback(on_terminate);
-
-	RF::window_info window_info
+	client.on_disconnect = []
 	{
-		.title = "RedFox Networking Test",
-		.graphics = RF::graphics_t::Vulkan,
-		.size = RF::uivec2(250, 250)
+		RF::logf::warn("Disconnected from server");
+		on_terminate();
 	};
 
-	RF::window *window { delegate->create_window(window_info) };
-	window->set_close_callback(on_close);
-	window->set_virtual_key_event_callback(handle_input);
+	client.on_server_timeout = []
+	{
+		RF::logf::error("Server timed out");
+		on_terminate();
+	};
 
-	// set-up networking
-	client_socket.set_message_callback(on_message);
+	std::thread input_thread([&client]()
+	{
+		for (;;)
+		{
+			char c;
+			std::cin >> c;
+
+			if (c == 'a')
+			{
+				RF::logf::info("Sending Ping to server");
+
+				RF::net::message msg;
+				msg.id = static_cast<std::uint32_t>(msg_t::Ping);
+				msg.payload = {};
+
+				client.send(msg);
+			}
+			else if (c == 'm')
+			{
+				RF::logf::info("Sending PingAll to server");
+
+				RF::net::message msg;
+				msg.id = static_cast<std::uint32_t>(msg_t::PingAll);
+				msg.payload = {};
+
+				client.send(msg);
+			}
+			else if (c == 'q')
+			{
+				client.disconnect();
+				break;
+			}
+		}
+	});
 
 	while (process_running)
 	{
-		delegate->poll_events();
+		client.process();
+		io.poll();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
-	// clean-up delegates
-	window->close();
-	delegate->terminate();
-
-	// clean-up networking
-	client_socket.end_process();
+	input_thread.join();
 
 	return 0;
 }

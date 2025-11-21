@@ -69,3 +69,17 @@
 #elif defined(_MSC_VER)
 #define __STDLIB_MSVCXX__  // MSVC STL
 #endif
+
+#include <cstdint>
+
+namespace RF::def
+{
+	struct version_info
+	{
+		std::size_t major;
+		std::size_t minor;
+		std::size_t patch;
+	};
+
+	RF::def::version_info RF_version();
+} // namespace RF::def

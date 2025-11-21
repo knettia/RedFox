@@ -1,69 +1,78 @@
 // local
 #include "./internal.hpp"
 
+// std
+#include <unordered_map>
+#include <string>
+
 // RedFox
-#include <RedFox/core/base.hpp>
+#include <RF/log.hpp>
+#include <RF/log.hpp>
+#include <RF/net/server.hpp>
 
-#define RF_NET_SERVER
-#include <RedFox/net/net.hpp>
-
-RF::net::socket server_socket(5503);
-std::vector<RF::net::connection> clients;
-
-void on_message(RF::net::connection connection, RF::net::message message)
+enum class msg_t : std::uint32_t
 {
-	asio::ip::udp::endpoint endpoint = connection.endpoint();
-
-	auto it = std::find(clients.begin(), clients.end(), connection);
-	if (it == clients.end())
-	{
-		clients.push_back(connection);
-		RF::ignoramus::logf(RF::ignoramus_t::info, "New client registered: [<0>]:<1>", endpoint.address(), endpoint.size());
-	}
-
-	switch (message.id<internal::msg_t>())
-	{
-		case (internal::msg_t::Ping):
-		{
-			RF::ignoramus::logf(RF::ignoramus_t::info, "Received ping from [<0>]:<1>", endpoint.address(), endpoint.size());
-			connection.send(RF::net::message(internal::msg_t::PingAll));
-			break;
-		}
-		
-		case (internal::msg_t::PingAll):
-		{
-			RF::ignoramus::logf(RF::ignoramus_t::info, "Received super ping request from [<0>]:<1>", endpoint.address(), endpoint.size());
-			RF::net::message message(internal::msg_t::Ping);
-			
-			for (RF::net::connection client : clients)
-			{
-				if (client != connection)
-				{
-					client.send(message);
-	
-					asio::ip::udp::endpoint client_endpoint = client.endpoint();
-					RF::ignoramus::logf(RF::ignoramus_t::info, "Sent ping to [<0>]:<1>", client_endpoint.address(), client_endpoint.size());
-				}
-			}
-
-			break;
-		}
-		
-		default:
-		{
-			RF::ignoramus::logf(RF::ignoramus_t::warning, "Unaccounted message with id <0> from [<0>]:<1>", message.id(), endpoint.address(), endpoint.size());
-			break;
-		}
-	}
-}
+	Ping,
+	PingAll
+};
 
 int main()
 {
-	server_socket.set_message_callback(on_message);
+	asio::io_context io;
+	RF::net::server::server_m server(io, 5503);
+
+	server.on_connect = [](const RF::net::server::client_info &client)
+	{
+		RF::logf::info("Client connected: <0>:<1>", client.endpoint.address().to_string(), client.endpoint.port());
+	};
+
+	server.on_disconnect = [](const RF::net::server::client_info &client, RF::net::server::disconnect_reason reason)
+	{
+		RF::logf::warn("Client disconnected: <0>:<1> (reason: <2>)", client.endpoint.address().to_string(), client.endpoint.port(), (int)reason);
+	};
+
+	server.on_receive = [&server](const RF::net::server::client_info &client, const RF::net::message &msg)
+	{
+		auto id = static_cast<msg_t>(msg.id);
+		switch (id)
+		{
+			case msg_t::Ping:
+			{
+				RF::logf::info("Received Ping from <0>:<1>", client.endpoint.address().to_string(), client.endpoint.port());
+
+				RF::net::message msg;
+				msg.id = static_cast<std::uint32_t>(msg_t::Ping);
+				msg.payload = {};
+
+				server.send(client.endpoint, msg);
+				break;
+			}
+
+			case msg_t::PingAll:
+			{
+				RF::logf::info("Received PingAll request from <0>:<1>", client.endpoint.address().to_string(), client.endpoint.port());
+
+				RF::net::message msg;
+				msg.id = static_cast<std::uint32_t>(msg_t::Ping);
+				msg.payload = {};
+
+				server.broadcast(msg);
+				break;
+			}
+
+			default:
+			{
+				RF::logf::warn("Unrecognised message (<0>) from <1>:<2>", (std::uint32_t)id, client.endpoint.address().to_string(), client.endpoint.port());
+				break;
+			}
+		}
+	};
 
 	for (;;)
 	{
-
+		server.process();
+		io.poll();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
 	return 0;

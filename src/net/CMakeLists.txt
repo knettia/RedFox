@@ -1,5 +1,5 @@
 # compile
-add_library(net SHARED "connection.cpp" "socket.cpp")
+add_library(net SHARED "utils.cpp" "server.cpp" "client.cpp")
 
 # include
 target_include_directories(net PUBLIC
