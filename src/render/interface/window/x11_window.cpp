@@ -59,6 +59,8 @@ RF::x11_window::x11_window(RF::reference_ptr<RF::delegate> delegate, RF::window_
 		| PointerMotionMask
 		| KeyPressMask
 		| KeyReleaseMask
+		| ButtonPressMask
+		| ButtonReleaseMask
 		| StructureNotifyMask
 		| FocusChangeMask
 	);
@@ -114,8 +116,8 @@ void RF::x11_window::handle_x11_event(const XEvent &event)
 		{
 			// Cursor locking logic
 			// TODO: Find a better way to handle this, similar to Win32,
-			//       But currently, overriding the cursor position was
-			//       The only reliable solution I found.
+			//	   But currently, overriding the cursor position was
+			//	   The only reliable solution I found.
 			if (this->get_flag(RF::window_flag_bit_t::CursorLocked))
 			{
 				this->handle_set_cursor_position_(this->mouse_position_);
@@ -180,6 +182,46 @@ void RF::x11_window::handle_x11_event(const XEvent &event)
 			if (keyopt.has_value())
 			{
 				this->handle_virtual_key_up(keyopt.value());
+			}
+			break;
+		}
+
+		case (ButtonPress):
+		{
+			RF::mouse_key_t key;
+			bool valid = true;
+
+			switch (event.xbutton.button)
+			{
+				case Button1: key = RF::mouse_key_t::LMB; break;
+				case Button2: key = RF::mouse_key_t::MMB; break;
+				case Button3: key = RF::mouse_key_t::RMB; break;
+				default: valid = false; break;
+			}
+
+			if (valid)
+			{
+				this->handle_mouse_key_down(key);
+			}
+			break;
+		}
+
+		case (ButtonRelease):
+		{
+			RF::mouse_key_t key;
+			bool valid = true;
+
+			switch (event.xbutton.button)
+			{
+				case Button1: key = RF::mouse_key_t::LMB; break;
+				case Button2: key = RF::mouse_key_t::MMB; break;
+				case Button3: key = RF::mouse_key_t::RMB; break;
+				default: valid = false; break;
+			}
+
+			if (valid)
+			{
+				this->handle_mouse_key_up(key);
 			}
 			break;
 		}
@@ -561,6 +603,50 @@ void RF::x11_window::handle_virtual_key_up(RF::virtual_key_t key)
 	{
 		state = RF::key_state_t::Inactive;
 		call_key_event_callback(key, state);
+	}
+}
+
+void RF::x11_window::handle_mouse_key_down(RF::mouse_key_t key)
+{
+	auto call_mouse_event_callback = [this](RF::mouse_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->mouse_key_event_callback_) this->mouse_key_event_callback_(this, key, state);
+	};
+
+	RF::key_state_t &state = this->mouse_key_states_.at(key);
+
+	if (state == RF::key_state_t::Inactive || state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Triggered;
+		call_mouse_event_callback(key, state);
+	}
+	if (state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Ongoing;
+		call_mouse_event_callback(key, state);
+	}
+	else call_mouse_event_callback(key, state);
+}
+
+void RF::x11_window::handle_mouse_key_up(RF::mouse_key_t key)
+{
+	auto call_mouse_event_callback = [this](RF::mouse_key_t key, RF::key_state_t state) -> void
+	{
+		if (this->mouse_key_event_callback_) this->mouse_key_event_callback_(this, key, state);
+	};
+
+	RF::key_state_t &state = this->mouse_key_states_.at(key);
+
+	if (state == RF::key_state_t::Ongoing || state == RF::key_state_t::Triggered)
+	{
+		state = RF::key_state_t::Suppressed;
+		call_mouse_event_callback(key, state);
+		this->handle_mouse_key_up(key);
+	}
+	else if (state == RF::key_state_t::Suppressed)
+	{
+		state = RF::key_state_t::Inactive;
+		call_mouse_event_callback(key, state);
 	}
 }
 
