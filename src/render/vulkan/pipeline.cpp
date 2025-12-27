@@ -171,7 +171,17 @@ void RF::vulkan::pipeline_impl_t::init(const vk::ArrayProxy<const vk::Descriptor
 	try
 	{
 		// Create pipeline layout
-		vk::PipelineLayoutCreateInfo pipeline_layout_info({}, sets.size(), sets.data());
+		vk::PipelineLayoutCreateInfo pipeline_layout_info(
+			{},
+			static_cast<uint32_t>(sets.size()),
+			sets.data(),
+			static_cast<uint32_t>(ranges.size()),
+			ranges.data()
+		);
+
+		this->layout_ = this->device_.createPipelineLayout(pipeline_layout_info);
+
+
 		this->layout_ = this->device_.createPipelineLayout(pipeline_layout_info);
 
 		// Create shaders
