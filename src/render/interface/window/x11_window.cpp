@@ -114,21 +114,26 @@ void RF::x11_window::handle_x11_event(const XEvent &event)
 
 		case (MotionNotify):
 		{
-			// Cursor locking logic
+			std::uint32_t x = event.xmotion.x;
+			std::uint32_t y = event.xmotion.y;
+
+			RF::uivec2 event_pos(x, y);
+
 			// TODO: Find a better way to handle this, similar to Win32,
 			//	   But currently, overriding the cursor position was
 			//	   The only reliable solution I found.
 			if (this->get_flag(RF::window_flag_bit_t::CursorLocked))
 			{
+				// If the event already is at the locked position, ignore it (prevents consuming stack by refiring events)
+				if (event_pos == this->mouse_position_) break;
+
 				this->handle_set_cursor_position_(this->mouse_position_);
 			}
 
-			std::uint32_t x = event.xmotion.x;
-			std::uint32_t y = event.xmotion.y;
-
-			this->handle_mouse_update(RF::uivec2(x, y));
+			this->handle_mouse_update(event_pos);
 			break;
 		}
+
 
 		case (FocusIn):
 		{
