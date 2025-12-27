@@ -37,29 +37,94 @@ bool RF::image_data_t::valid() const noexcept
 	return (!bytes.empty() && size.x > 0 && size.y > 0 && type != image_type::None && format != image_format::None);
 }
 
-RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file)
+static std::size_t channels_per_image_type(RF::image_type type)
 {
 	switch (type)
 	{
-	case (RF::image_type::PNG):
-	case (RF::image_type::JPEG):
+	case (RF::image_type::R): return 1;
+	case (RF::image_type::RG): return 2;
+	case (RF::image_type::RGB): return 3;
+	case (RF::image_type::RGBA): return 4;
+	default: return 0;
+	}
+}
+
+static RF::image_type image_type_from_channels(std::size_t channels)
+{
+	switch (channels)
 	{
-		int width, height, channels;
+	case (1): return RF::image_type::R;
+	case (2): return RF::image_type::RG;
+	case (3): return RF::image_type::RGB;
+	case (4): return RF::image_type::RGBA;
+	default: return RF::image_type::None;
+	}
+}
+
+RF::image_data_t RF::load_image(RF::image_format format, RF::image_type type, const std::string_view file)
+{
+	switch (format)
+	{
+	case (RF::image_format::PNG):
+	case (RF::image_format::JPEG):
+	{
+		int width = 0, height = 0, channels = 0;
 		stbi_set_flip_vertically_on_load(true);
-		std::uint8_t *data = stbi_load(file.data(), &width, &height, &channels, 4);
 
-		if (!data) throw RF::engine_error("Failed to get image data from file '<0>'", file);
+		std::uint8_t* loaded = stbi_load(file.data(), &width, &height, &channels, 0);
+		if (!loaded) throw RF::engine_error("Failed to get image data from file '<0>'", file);
 
-		RF::image_format format = (channels == 4) ? RF::image_format::RGBA8 : RF::image_format::RGB8;
-		auto data_size = static_cast<std::size_t>(width * height * 4);
 
-		auto result = image_data_t::from_raw(data, data_size, RF::uivec2(width, height), type, format);
+		auto img_type = image_type_from_channels(channels);
+		if (img_type == RF::image_type::None)
+		{
+			stbi_image_free(loaded);
+			throw RF::engine_error("Unsupported number of channels <0> in image '<1>'", channels, file);
+		}
 
-		stbi_image_free(data);
+		if (type == RF::image_type::None)
+		{
+			type = img_type;
+		}
+
+		int desiredChannels = channels_per_image_type(type);
+		if (desiredChannels == 0)
+		{
+			stbi_image_free(loaded);
+			throw RF::engine_error("Unsupported target image type requested for '<0>'", file);
+		}
+
+		std::size_t pixels = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+		std::size_t final_size = pixels * static_cast<std::size_t>(desiredChannels);
+
+		std::vector<std::uint8_t> converted;
+		std::uint8_t* data_ptr = loaded;
+
+		if (desiredChannels != channels)
+		{
+			converted.resize(final_size);
+			for (std::size_t p = 0; p < pixels; ++p)
+			{
+				std::uint8_t* src = loaded + p * static_cast<std::size_t>(channels);
+				std::uint8_t* dst = converted.data() + p * static_cast<std::size_t>(desiredChannels);
+
+				int copyCount = std::min(channels, desiredChannels);
+				for (int c = 0; c < copyCount; ++c) dst[c] = src[c];
+
+				for (int c = copyCount; c < desiredChannels; ++c) dst[c] = 0xFF;
+			}
+
+			data_ptr = converted.data();
+		}
+
+		auto result = image_data_t::from_raw(data_ptr, final_size, RF::uivec2(width, height), type, format);
+
+		stbi_image_free(loaded);
+
 		return result;
 	}
 
-	case (RF::image_type::EXR):
+	case (RF::image_format::EXR):
 	{
 		Imf::RgbaInputFile exr_file(file.data());
 		auto header = exr_file.header();
@@ -85,6 +150,8 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 		if (valid_channels.b) ++channels;
 		if (valid_channels.a) ++channels;
 
+		// past this point, this loader only supports RGB or RGBA images, and always outputs as RGBA,
+		// we want it to be dynamic like the JPEG/PNG loader.
 		auto dw = exr_file.dataWindow();
 		auto width = dw.max.x - dw.min.x + 1;
 		auto height = dw.max.y - dw.min.y + 1;
@@ -110,12 +177,8 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 				data[index + 3] = static_cast<std::uint8_t>(pixel.a * 255);
 			}
 		}
-		
-		auto format = RF::image_format::None;
 
-		if (channels == 4) format = RF::image_format::RGBA8;
-		else if (channels == 3) format = RF::image_format::RGB8;
-		else throw RF::engine_error("Unsupported number of channels <0> in EXR image '<1>'", channels, file);
+		auto img_type = image_type_from_channels(channels);
 
 		auto result = image_data_t::from_raw(data, data_size, RF::uivec2(width, height), type, format);
 
@@ -123,7 +186,7 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 		return result;
 	}
 
-	case (RF::image_type::KTX):
+	case (RF::image_format::KTX):
 	{
 	#if defined (RF_KTX_SUPPORT)
 		ktxTexture *kTexture{};
@@ -135,7 +198,7 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 		ktx_size_t data_size = ktxTexture_GetDataSize(kTexture);
 
 		// For now assume RGBA8, could be extended with more prcise format parsing
-		image_data_t result = image_data_t::from_raw(data, data_size, RF::uivec2(kTexture->baseWidth, kTexture->baseHeight), type, RF::image_format::RGBA8);
+		image_data_t result = image_data_t::from_raw(data, data_size, RF::uivec2(kTexture->baseWidth, kTexture->baseHeight), RF::image_type::RGB, format);
 
 		ktxTexture_Destroy(kTexture);
 		return result;
@@ -144,7 +207,7 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 	#endif
 	}
 
-	case (RF::image_type::DDS):
+	case (RF::image_format::DDS):
 	{
 	#if defined(RF_DDS_SUPPORT)
 		DDSFile dds;
@@ -157,11 +220,11 @@ RF::image_data_t RF::load_image(RF::image_type type, const std::string_view file
 		throw RF::runtime_error("Failed to load DDS texture. RedFox Engine build was compiled without TinyDDSLoader");
 	#endif
 	}
-	case (RF::image_type::BIT):
-	case (RF::image_type::TGA): throw RF::engine_error("Attempt to load file of an unimplemented type <0>", RF::to_string(type));
+	case (RF::image_format::BIT):
+	case (RF::image_format::TGA): throw RF::engine_error("Attempt to load file of an unimplemented type <0>", RF::to_string(format));
 
 	[[fallthrough]];
-	case (RF::image_type::None): throw RF::engine_error("Attempt to load file of type 'None'");
+	case (RF::image_format::None): throw RF::engine_error("Attempt to load file of type 'None'");
 	}
 	return {};
 }

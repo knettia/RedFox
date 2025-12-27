@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RF/maths/vec/vec2.hpp"
+#include "RF/maths/vec.hpp"
 
 #include <cstddef>
 #include <vector>
@@ -8,55 +8,48 @@
 
 namespace RF
 {
-	enum class image_type
+	enum class image_format
 	{
 		None = 0x0,
 		KTX,
 		DDS,
-		EXR, // newly added
+		EXR,
 		BIT,
-		TGA, // newly added
+		TGA,
 		PNG,
 		JPEG,
 	};
 
-	inline std::string to_string(const image_type type)
+	inline std::string to_string(const image_format type)
 	{
 		switch (type)
 		{
-		case (image_type::None): return "None";
-		case (image_type::KTX): return "KTX";
-		case (image_type::DDS): return "DDS";
-		case (image_type::EXR): return "EXR";
-		case (image_type::BIT): return "BIT";
-		case (image_type::TGA): return "TGA";
-		case (image_type::PNG): return "PNG";
-		case (image_type::JPEG): return "JPEG";
+		case (image_format::None): return "None";
+		case (image_format::KTX): return "KTX";
+		case (image_format::DDS): return "DDS";
+		case (image_format::EXR): return "EXR";
+		case (image_format::BIT): return "BIT";
+		case (image_format::TGA): return "TGA";
+		case (image_format::PNG): return "PNG";
+		case (image_format::JPEG): return "JPEG";
 		default: return "Unknown";
 		}
 	}
 
-	enum class image_format
+	enum class image_type
 	{
 		None = 0x0,
-		RGBA8,
-		RGB8,
-		RGBA16F,
-		RGBA32F,
+		Auto = None, // alias
+		Mixed = None, // alias
+		R = 0x1,
+		Greyscale = R, // alias
+		RG = 0x2,
+		Twochannel = RG, // alias
+		RGB = 0x3,
+		Colour = RGB, // alias
+		RGBA = 0x4,
+		Composited = RGBA, // alias
 	};
-
-	inline std::string to_string(const image_format format)
-	{
-		switch (format)
-		{
-		case (image_format::None): return "None";
-		case (image_format::RGBA8): return "RGBA8";
-		case (image_format::RGB8): return "RGB8";
-		case (image_format::RGBA16F): return "RGBA16F";
-		case (image_format::RGBA32F): return "RGBA32F";
-		default: return "Unknown";
-		}
-	}
 
 	struct image_data_t
 	{
@@ -74,5 +67,5 @@ namespace RF
 		bool valid() const noexcept;
 	};
 
-	RF::image_data_t load_image(RF::image_type type, const std::string_view file);
+	RF::image_data_t load_image(RF::image_format format, RF::image_type type, const std::string_view file);
 } // namespace RF
