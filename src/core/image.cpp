@@ -71,7 +71,7 @@ RF::image_data_t RF::load_image(RF::image_format format, RF::image_type type, co
 		int width = 0, height = 0, channels = 0;
 		stbi_set_flip_vertically_on_load(true);
 
-		std::uint8_t* loaded = stbi_load(file.data(), &width, &height, &channels, 0);
+		std::uint8_t *loaded = stbi_load(file.data(), &width, &height, &channels, 0);
 		if (!loaded) throw RF::engine_error("Failed to get image data from file '<0>'", file);
 
 
@@ -98,15 +98,15 @@ RF::image_data_t RF::load_image(RF::image_format format, RF::image_type type, co
 		std::size_t final_size = pixels * static_cast<std::size_t>(desiredChannels);
 
 		std::vector<std::uint8_t> converted;
-		std::uint8_t* data_ptr = loaded;
+		std::uint8_t *data_ptr = loaded;
 
 		if (desiredChannels != channels)
 		{
 			converted.resize(final_size);
 			for (std::size_t p = 0; p < pixels; ++p)
 			{
-				std::uint8_t* src = loaded + p * static_cast<std::size_t>(channels);
-				std::uint8_t* dst = converted.data() + p * static_cast<std::size_t>(desiredChannels);
+				std::uint8_t *src = loaded + p * static_cast<std::size_t>(channels);
+				std::uint8_t *dst = converted.data() + p * static_cast<std::size_t>(desiredChannels);
 
 				int copyCount = std::min(channels, desiredChannels);
 				for (int c = 0; c < copyCount; ++c) dst[c] = src[c];
@@ -227,4 +227,138 @@ RF::image_data_t RF::load_image(RF::image_format format, RF::image_type type, co
 	case (RF::image_format::None): throw RF::engine_error("Attempt to load file of type 'None'");
 	}
 	return {};
+}
+
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <span>
+
+RF::image_data_t RF::load_atlas(RF::image_type type, std::span<const atlas_element_t> elements)
+{
+
+	const int channels = channels_per_image_type(type);
+	if (channels == 0) throw RF::engine_error("Unsupported target image type requested for atlas");
+
+	if (elements.empty())
+	{
+		auto empty = image_data_t{};
+		empty.type = type;
+		return empty;
+	}
+
+	struct loaded_elem
+	{
+		image_data_t img;
+		RF::ivec2 pos;
+		const atlas_element_t *spec;
+	};
+
+	std::vector<loaded_elem> loaded;
+	loaded.reserve(elements.size());
+
+	for (const auto &elem : elements)
+	{
+		auto img = RF::load_image(elem.format, type, elem.file);
+
+		if (img.bytes.empty() && (img.size.x == 0 || img.size.y == 0))
+			throw RF::engine_error("Failed to load atlas element '<0>'", elem.file);
+
+		const int w = static_cast<int>(img.size.x);
+		const int h = static_cast<int>(img.size.y);
+
+		int ox = 0;
+		int oy = 0;
+		if (elem.offset.type == atlas_offset::Absolute)
+		{
+			ox = static_cast<int>(std::lround(elem.offset.size.x));
+			oy = static_cast<int>(std::lround(elem.offset.size.y));
+		}
+		else // Relative
+		{
+			ox = static_cast<int>(std::lround(elem.offset.size.x * static_cast<float>(w)));
+			oy = static_cast<int>(std::lround(elem.offset.size.y * static_cast<float>(h)));
+		}
+
+		loaded.push_back(loaded_elem{ std::move(img), RF::ivec2(ox, oy), &elem });
+	}
+
+	int minx = std::numeric_limits<int>::max();
+	int miny = std::numeric_limits<int>::max();
+	int maxx = std::numeric_limits<int>::min();
+	int maxy = std::numeric_limits<int>::min();
+
+	for (const auto &le : loaded)
+	{
+		const int w = static_cast<int>(le.img.size.x);
+		const int h = static_cast<int>(le.img.size.y);
+
+		minx = std::min(minx, le.pos.x);
+		miny = std::min(miny, le.pos.y);
+		maxx = std::max(maxx, le.pos.x + w);
+		maxy = std::max(maxy, le.pos.y + h);
+	}
+
+	if (minx >= maxx || miny >= maxy)
+	{
+		auto empty = image_data_t{};
+		empty.type = type;
+		return empty;
+	}
+
+	const int width  = maxx - minx;
+	const int height = maxy - miny;
+
+	for (auto &le : loaded)
+	{
+		le.pos.x -= minx;
+		le.pos.y -= miny;
+	}
+
+	const std::size_t pixels = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+	const std::size_t atlas_size = pixels * static_cast<std::size_t>(channels);
+	std::vector<std::byte> buffer(atlas_size, std::byte(0u));
+
+	for (const auto &le : loaded)
+	{
+		const int src_w = static_cast<int>(le.img.size.x);
+		const int src_h = static_cast<int>(le.img.size.y);
+		const int dst_x = le.pos.x;
+		const int dst_y = le.pos.y;
+
+		if (src_w <= 0 || src_h <= 0) continue;
+
+		const std::size_t src_row = static_cast<std::size_t>(src_w) * static_cast<std::size_t>(channels);
+		const std::size_t dst_row = static_cast<std::size_t>(width) * static_cast<std::size_t>(channels);
+
+		const std::byte *src_pixels = le.img.bytes.data();
+		std::byte *dst_pixels = buffer.data();
+
+		int copy_x0 = std::max(0, dst_x);
+		int copy_y0 = std::max(0, dst_y);
+		int copy_x1 = std::min(width, dst_x + src_w);	// exclusive
+		int copy_y1 = std::min(height, dst_y + src_h);   // exclusive
+
+		if (copy_x1 <= copy_x0 || copy_y1 <= copy_y0) continue; // nothing visible
+
+		for (int row = copy_y0; row < copy_y1; ++row)
+		{
+			const int src_row = row - dst_y;			   // row in source image
+			const int src_col = copy_x0 - dst_x;			// starting column in source row
+			const std::size_t srcOffset = (static_cast<std::size_t>(src_row) * static_cast<std::size_t>(src_w) + static_cast<std::size_t>(src_col))
+										  * static_cast<std::size_t>(channels);
+
+			const std::size_t dstOffset = (static_cast<std::size_t>(row) * static_cast<std::size_t>(width) + static_cast<std::size_t>(copy_x0))
+										  * static_cast<std::size_t>(channels);
+
+			const std::size_t bytesToCopy = static_cast<std::size_t>(copy_x1 - copy_x0) * static_cast<std::size_t>(channels);
+
+			std::memcpy(dst_pixels + dstOffset, src_pixels + srcOffset, bytesToCopy);
+		}
+	}
+
+	auto result = image_data_t::from_raw(reinterpret_cast<std::uint8_t *>(buffer.data()), atlas_size, RF::uivec2(width, height), type, RF::image_format::None);
+
+	return result;
 }

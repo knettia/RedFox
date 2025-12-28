@@ -68,4 +68,25 @@ namespace RF
 	};
 
 	RF::image_data_t load_image(RF::image_format format, RF::image_type type, const std::string_view file);
+
+	enum class atlas_offset
+	{
+		Absolute,
+		Relative
+	};
+
+	struct atlas_offset_t
+	{
+		RF::fvec2 size;
+		atlas_offset type;
+	};
+
+	struct atlas_element_t
+	{
+		RF::image_format format;
+		std::string file;
+		atlas_offset_t offset;
+	};
+
+	RF::image_data_t load_atlas(RF::image_type, std::span<const atlas_element_t> elements);
 } // namespace RF

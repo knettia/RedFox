@@ -6,6 +6,6 @@ RF::def::version_info RF::def::RF_version()
 	{
 		0,
 		3,
-		1
+		2
 	};
 }
