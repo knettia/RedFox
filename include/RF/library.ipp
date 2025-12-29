@@ -38,10 +38,9 @@ inline std::function<T> RF::lib::get_function(const std::string_view symbol)
 }
 
 template <typename R, typename... Args>
-template <typename F>
-inline bool RF::abstract_function_t<R(Args...)>::define(const std::string& key, F&& f)
+inline bool RF::abstract_function_t<R(Args...)>::define(const std::string& key, RF::abstract_function_t<R(Args...)>::function_type f)
 {
-	function_type fn = std::forward<F>(f);
+	function_type fn = std::forward<RF::abstract_function_t<R(Args...)>::function_type>(f);
 	std::lock_guard<std::mutex> lg(mutex_);
 	auto it = map_.find(key);
 	if (it == map_.end())

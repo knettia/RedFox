@@ -55,9 +55,7 @@ namespace RF
 		abstract_function_t() = default;
 		~abstract_function_t() = default;
 
-		template <typename F>
-		bool define(const std::string& key, F&& f);
-
+		bool define(const std::string& key, function_type);
 		bool undefine(const std::string& key);
 
 		bool contains(const std::string& key) const;
