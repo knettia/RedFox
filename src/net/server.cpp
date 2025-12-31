@@ -1,22 +1,66 @@
 #include "RF/net/server.hpp"
 
-RF::net::server::server_m::server_m(asio::io_context &io,
-                                    unsigned short port,
+RF::net::server::server_impl_m::server_impl_m()
+:
+	io_(),
+	socket_(io_, asio::ip::udp::endpoint(asio::ip::udp::v4(), 0))
+{ }
+
+void RF::net::server::server_impl_m::host(unsigned short port,
                                     milliseconds heartbeat_timeout,
                                     milliseconds disconnect_timeout,
                                     milliseconds heartbeat_interval)
-:
-	socket_(io, asio::ip::udp::endpoint(asio::ip::udp::v4(), port)),
-	heartbeat_timeout_(heartbeat_timeout),
-	disconnect_timeout_(disconnect_timeout),
-	heartbeat_interval_(heartbeat_interval),
-	last_heartbeat_sent_(steady_clock::now())
 {
+	socket_ = asio::ip::udp::socket(io_, asio::ip::udp::endpoint(asio::ip::udp::v4(), port));
+	heartbeat_timeout_ = (heartbeat_timeout);
+	disconnect_timeout_ = (disconnect_timeout);
+	heartbeat_interval_ = (heartbeat_interval);
+	last_heartbeat_sent_ = (steady_clock::now());
+
 	socket_.non_blocking(true);
+
+	hosting_ = true;
 }
 
-void RF::net::server::server_m::process()
+bool RF::net::server::server_impl_m::callback_on_connect_define(std::string_view id, std::function<on_connect_t> ptr)
 {
+	return this->on_connect.define(id.data(), ptr);
+}
+bool RF::net::server::server_impl_m::callback_on_connect_undefine(std::string_view id)
+{
+	return this->on_connect.undefine(id.data());
+}
+
+bool RF::net::server::server_impl_m::callback_on_disconnect_define(std::string_view id, std::function<on_disconnect_t> ptr)
+{
+	return this->on_disconnect.define(id.data(), ptr);
+}
+bool RF::net::server::server_impl_m::callback_on_disconnect_undefine(std::string_view id)
+{
+	return this->on_disconnect.undefine(id.data());
+}
+
+bool RF::net::server::server_impl_m::callback_on_receive_define(std::string_view id, std::function<on_receive_t> ptr)
+{
+	return this->on_receive.define(id.data(), ptr);
+}
+bool RF::net::server::server_impl_m::callback_on_receive_undefine(std::string_view id)
+{
+	return this->on_receive.undefine(id.data());
+}
+
+bool RF::net::server::server_impl_m::callback_on_state_change_define(std::string_view id, std::function<on_state_change_t> ptr)
+{
+	return this->on_state_change.define(id.data(), ptr);
+}
+bool RF::net::server::server_impl_m::callback_on_state_change_undefine(std::string_view id)
+{
+	return this->on_state_change.undefine(id.data());
+}
+
+void RF::net::server::server_impl_m::process()
+{
+	this->io_.poll();
 	this->receive_all();
 
 	const auto now = steady_clock::now();
@@ -39,27 +83,18 @@ void RF::net::server::server_m::process()
 
 		if (time_since > disconnect_timeout_)
 		{
-			if (on_disconnect)
-			{
-				on_disconnect(ci, disconnect_reason::Timeout);
-			}
+			on_disconnect.call(ci, disconnect_reason::Timeout);
 			to_remove.push_back(ci.endpoint);
 		}
-		else if (time_since > heartbeat_timeout_ && ci.state != client_state::Dormant)
+		else if (time_since > heartbeat_timeout_ && ci.state != socket_state::Dormant)
 		{
-			ci.state = client_state::Dormant;
-			if (on_state_change)
-			{
-				on_state_change(ci, prev_state, ci.state);
-			}
+			ci.state = socket_state::Dormant;
+			on_state_change.call(ci, prev_state, ci.state);
 		}
-		else if (time_since <= heartbeat_timeout_ && ci.state != client_state::Aroused)
+		else if (time_since <= heartbeat_timeout_ && ci.state != socket_state::Aroused)
 		{
-			ci.state = client_state::Aroused;
-			if (on_state_change)
-			{
-				on_state_change(ci, prev_state, ci.state);
-			}
+			ci.state = socket_state::Aroused;
+			on_state_change.call(ci, prev_state, ci.state);
 		}
 	}
 
@@ -70,7 +105,7 @@ void RF::net::server::server_m::process()
 }
 
 
-void RF::net::server::server_m::send(const asio::ip::udp::endpoint &client_endpoint,
+void RF::net::server::server_impl_m::send(const asio::ip::udp::endpoint &client_endpoint,
           const RF::net::message &msg)
 {
 	auto buf = RF::net::serialize_public(msg);
@@ -78,7 +113,7 @@ void RF::net::server::server_m::send(const asio::ip::udp::endpoint &client_endpo
 	// no flush necessary for UDP
 }
 
-void RF::net::server::server_m::broadcast(const RF::net::message &msg)
+void RF::net::server::server_impl_m::broadcast(const RF::net::message &msg)
 {
 	auto buf = RF::net::serialize_public(msg);
 	for (auto &kv : this->clients_)
@@ -87,7 +122,7 @@ void RF::net::server::server_m::broadcast(const RF::net::message &msg)
 	}
 }
 
-void RF::net::server::server_m::receive_all()
+void RF::net::server::server_impl_m::receive_all()
 {
 	std::vector<std::uint8_t> recv_buf(65536);
 	for (;;)
@@ -105,14 +140,11 @@ void RF::net::server::server_m::receive_all()
 				client_info ci;
 				ci.endpoint = sender;
 				ci.agent = "";
-				ci.state = client_state::Aroused;
+				ci.state = socket_state::Aroused;
 				ci.last_heartbeat = steady_clock::now();
 				clients_.emplace(sender, ci);
 				it = clients_.find(sender);
-				if (on_connect)
-				{
-					on_connect(it->second);
-				}
+				on_connect.call(ci);
 			}
 
 			client_info &ci = it->second;
@@ -122,17 +154,11 @@ void RF::net::server::server_m::receive_all()
 
 			if (im.id == RF::net::internal_message_id_t::Application)
 			{
-				if (on_receive)
-				{
-					on_receive(ci, to_public(im));
-				}
+				on_receive.call(ci, to_public(im));
 			}
 			else if (im.id == RF::net::internal_message_id_t::Disconnect)
 			{
-				if (on_disconnect)
-				{
-					on_disconnect(ci, disconnect_reason::Voluntary);
-				}
+				on_disconnect.call(ci, disconnect_reason::Voluntary);
 				clients_.erase(sender);
 			}
 			else if (im.id == RF::net::internal_message_id_t::SetAgent)
@@ -161,7 +187,7 @@ void RF::net::server::server_m::receive_all()
 	}
 }
 
-void RF::net::server::server_m::send_heartbeats()
+void RF::net::server::server_impl_m::send_heartbeats()
 {
 	RF::net::internal_message hb;
 	hb.id = RF::net::internal_message_id_t::Heartbeat;

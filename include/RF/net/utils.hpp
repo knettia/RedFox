@@ -10,6 +10,12 @@
 
 namespace RF::net
 {
+	enum class socket_state
+	{
+		Aroused,
+		Dormant
+	};
+
 	using steady_clock = std::chrono::steady_clock;
 	using time_point = std::chrono::steady_clock::time_point;
 	using milliseconds = std::chrono::milliseconds;

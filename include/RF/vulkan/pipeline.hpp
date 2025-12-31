@@ -10,6 +10,7 @@ namespace RF::vulkan
 	struct pipeline_config_t
 	{
 		vk::PipelineInputAssemblyStateCreateInfo  input_assembly;
+		vk::PipelineTessellationStateCreateInfo   tessellation;
 		vk::PipelineDynamicStateCreateInfo        dynamic_state;
 		vk::PipelineViewportStateCreateInfo       viewport_state;
 		vk::PipelineColorBlendStateCreateInfo     color_blending;

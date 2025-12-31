@@ -56,6 +56,13 @@ RF::vulkan::pipeline_config_t::pipeline_config_t(RF::vulkan::vertex_description_
 		false
 	};
 
+	this->tessellation = vk::PipelineTessellationStateCreateInfo
+	{
+		{},
+		{},
+		nullptr
+	};
+
 	// Default viewport and scissor (dynamic)
 	this->viewport_state = vk::PipelineViewportStateCreateInfo
 	{
@@ -193,13 +200,13 @@ void RF::vulkan::pipeline_impl_t::init(const vk::ArrayProxy<const vk::Descriptor
 			shader_modules.push_back(create_shader_module(this->device_, shader.filename));
 
 			shader_stages.push_back(create_shader_stage_info(shader_modules.back(), shader.type));
-		}
-		
+		};
+
 		// Use provided config states
 		vk::GraphicsPipelineCreateInfo pipeline_info
 		(
 			{}, shader_stages.size(), shader_stages.data(),
-			&config.vertex_input, &config.input_assembly, nullptr,
+			&config.vertex_input, &config.input_assembly, &config.tessellation,
 			&config.viewport_state, &config.rasterization,
 			&config.multisampling, &config.depth_stencil,
 			&config.color_blending, &config.dynamic_state,
