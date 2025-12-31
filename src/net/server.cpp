@@ -84,17 +84,17 @@ void RF::net::server::server_impl_m::process()
 		if (time_since > disconnect_timeout_)
 		{
 			on_disconnect.call(ci, disconnect_reason::Timeout);
-			to_remove.push_back(ci.endpoint);
+			to_remove.push_back(kv.first);
 		}
 		else if (time_since > heartbeat_timeout_ && ci.state != socket_state::Dormant)
 		{
 			ci.state = socket_state::Dormant;
-			on_state_change.call(ci, prev_state, ci.state);
+			on_state_change.call(ci, ci.state);
 		}
 		else if (time_since <= heartbeat_timeout_ && ci.state != socket_state::Aroused)
 		{
 			ci.state = socket_state::Aroused;
-			on_state_change.call(ci, prev_state, ci.state);
+			on_state_change.call(ci, ci.state);
 		}
 	}
 
@@ -104,12 +104,27 @@ void RF::net::server::server_impl_m::process()
 	}
 }
 
+std::vector<RF::net::server::client_info> RF::net::server::server_impl_m::clients()
+{
+	std::vector<RF::net::server::client_info> clients;
 
-void RF::net::server::server_impl_m::send(const asio::ip::udp::endpoint &client_endpoint,
+	for (auto &[endpoint, ci] : this->clients_)
+	{
+		clients.push_back(ci);
+	}
+
+	return clients;
+}
+
+void RF::net::server::server_impl_m::send(const std::size_t id,
           const RF::net::message &msg)
 {
 	auto buf = RF::net::serialize_public(msg);
-	this->socket_.send_to(asio::buffer(buf), client_endpoint);
+
+	for (auto &[endpoint, ci] : clients_)
+	{
+		if (ci.id == id) socket_.send_to(asio::buffer(buf), endpoint);
+	}
 	// no flush necessary for UDP
 }
 
@@ -118,7 +133,7 @@ void RF::net::server::server_impl_m::broadcast(const RF::net::message &msg)
 	auto buf = RF::net::serialize_public(msg);
 	for (auto &kv : this->clients_)
 	{
-		socket_.send_to(asio::buffer(buf), kv.second.endpoint);
+		socket_.send_to(asio::buffer(buf), kv.first);
 	}
 }
 
@@ -138,7 +153,7 @@ void RF::net::server::server_impl_m::receive_all()
 			{
 				// new client
 				client_info ci;
-				ci.endpoint = sender;
+				ci.id = clients_.size() + 1;
 				ci.agent = "";
 				ci.state = socket_state::Aroused;
 				ci.last_heartbeat = steady_clock::now();
@@ -197,6 +212,6 @@ void RF::net::server::server_impl_m::send_heartbeats()
 
 	for (auto &kv : clients_)
 	{
-		socket_.send_to(asio::buffer(buf), kv.second.endpoint);
+		socket_.send_to(asio::buffer(buf), kv.first);
 	}
 }

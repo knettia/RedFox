@@ -38,7 +38,7 @@ namespace RF::net::client
 		void process();
 		void send(const RF::net::message &msg);
 
-		connection_state connection_state();
+		RF::net::client::connection_state connection_state();
 
 		bool callback_on_disconnect_define(std::string_view id, on_disconnect_t ptr);
 		bool callback_on_disconnect_undefine(std::string_view id);

@@ -16,16 +16,16 @@ namespace RF::net::server
 
 	struct client_info
 	{
-		asio::ip::udp::endpoint endpoint;
+		std::size_t id;
 		std::string agent;
 		RF::net::socket_state state;
 		time_point last_heartbeat;
 	};
 
-	using on_connect_t = void(const client_info &);
-	using on_disconnect_t = void(const client_info &, disconnect_reason);
-	using on_receive_t = void(const client_info &, const RF::net::message &);
-	using on_state_change_t = void(const client_info &, RF::net::socket_state, RF::net::socket_state);
+	using on_connect_t = void(const client_info);
+	using on_disconnect_t = void(const client_info, disconnect_reason);
+	using on_receive_t = void(const client_info, const RF::net::message &);
+	using on_state_change_t = void(const client_info, RF::net::socket_state);
 
 	class server_impl_m
 	{
@@ -42,7 +42,7 @@ namespace RF::net::server
 		void process();
 
 		// send application message to a client
-		void send(const asio::ip::udp::endpoint &client_endpoint, const RF::net::message &msg);
+		void send(const std::size_t id, const RF::net::message &msg);
 
 		// convenience: send to all clients
 		void broadcast(const RF::net::message &msg);
@@ -58,6 +58,8 @@ namespace RF::net::server
 
 		bool callback_on_state_change_define(std::string_view id, std::function<on_state_change_t> ptr);
 		bool callback_on_state_change_undefine(std::string_view id);
+
+		std::vector<client_info> clients();
 	private:
 		// callbacks
 		std::atomic<bool> hosting_;

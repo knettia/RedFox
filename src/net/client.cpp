@@ -191,6 +191,8 @@ void RF::net::client::client_impl_m::initial_connection()
 
 void RF::net::client::client_impl_m::receive_all()
 {
+	if (!handshake_complete_) handshake_complete_ = true;
+
 	std::vector<std::uint8_t> recv_buf(65536);
 	for (;;)
 	{
