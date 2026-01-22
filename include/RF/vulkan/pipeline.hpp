@@ -33,6 +33,12 @@ namespace RF::vulkan
 		vk::ShaderStageFlagBits type;
 	};
 
+	enum class pipeline_type
+	{
+		Graphics,
+		Compute
+	};
+
 	class pipeline_impl_t
 	{
 	private:
@@ -43,14 +49,40 @@ namespace RF::vulkan
 
 		vk::PipelineLayout layout_;
 		vk::Pipeline handle_;
+
+		void init_graphics(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
+		                   const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
+		                   const vk::ArrayProxy<const RF::vulkan::shader_t> &shaders,
+		                   const vk::Device device, const vk::RenderPass pass,
+		                   const RF::vulkan::pipeline_config_t &config);
+
+		void init_compute(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
+                                  const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
+                                  const RF::vulkan::shader_t &shader, // single compute shader
+                                  const vk::Device device);
 	public:
 		pipeline_impl_t() = default;
 
+		template <pipeline_type type = pipeline_type::Graphics>
 		void init(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
 		          const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
 		          const vk::ArrayProxy<const RF::vulkan::shader_t> &shaders,
 		          const vk::Device device, const vk::RenderPass pass,
-		          const RF::vulkan::pipeline_config_t &config);
+		          const RF::vulkan::pipeline_config_t &config)
+		{
+			this->init_graphics(sets, ranges, shaders, device, pass,config);
+		}
+
+		template <pipeline_type type = pipeline_type::Compute>
+		void init(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
+        	          const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
+        	          const RF::vulkan::shader_t &shader, // single compute shader
+        	          const vk::Device device)
+		{
+			this->init_compute(sets, ranges, shader, device);
+		}
+
+		void init();
 		
 		void destroy();
 

@@ -162,14 +162,13 @@ namespace
 	}
 } // anonymous namespace
 
-void RF::vulkan::pipeline_impl_t::init(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
-                                       const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
-                                       const vk::ArrayProxy<const RF::vulkan::shader_t> &shaders,
-                                       const vk::Device device, const vk::RenderPass pass,
-                                       const RF::vulkan::pipeline_config_t &config)
+void RF::vulkan::pipeline_impl_t::init_graphics(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
+                                                const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
+                                                const vk::ArrayProxy<const RF::vulkan::shader_t> &shaders,
+                                                const vk::Device device, const vk::RenderPass pass,
+                                                const RF::vulkan::pipeline_config_t &config)
 {
 	if (this->initialised_) throw RF::engine_error("Cannot initialise an already initialised RF::vulkan::pipeline_impl_t");
-	this->initialised_ = true;
 
 	// initialising
 	this->device_ = device;
@@ -216,10 +215,55 @@ void RF::vulkan::pipeline_impl_t::init(const vk::ArrayProxy<const vk::Descriptor
 		this->handle_ = this->device_.createGraphicsPipeline(nullptr, pipeline_info).value;
 
 		for (auto shader_module : shader_modules) this->device_.destroyShaderModule(shader_module);
+
+		this->initialised_ = true;
 	}
 	catch (vk::SystemError &err)
 	{ throw RF::engine_error(RF::format_view("Failed to create Vulkan pipeline: <0>", err.what())); }
 }
+
+void RF::vulkan::pipeline_impl_t::init_compute(const vk::ArrayProxy<const vk::DescriptorSetLayout> &sets,
+                                               const vk::ArrayProxy<const vk::PushConstantRange> &ranges,
+                                               const RF::vulkan::shader_t &shader,
+                                               const vk::Device device)
+{
+	if (this->initialised_)  throw RF::engine_error("Cannot initialise an already initialised RF::vulkan::pipeline_impl_t");
+
+	if (shader.type != vk::ShaderStageFlagBits::eCompute) throw RF::engine_error("Expected stage <0> for compute shader, got <1>", vk::to_string(vk::ShaderStageFlagBits::eCompute), vk::to_string(shader.type));
+
+	this->device_ = device;
+
+	try
+	{
+		// Create pipeline layout
+		vk::PipelineLayoutCreateInfo pipeline_layout_info(
+			{},
+			static_cast<uint32_t>(sets.size()),
+			sets.data(),
+			static_cast<uint32_t>(ranges.size()),
+			ranges.data()
+		);
+
+		this->layout_ = this->device_.createPipelineLayout(pipeline_layout_info);
+
+		// Create shader module
+		vk::ShaderModule shader_module = create_shader_module(this->device_, shader.filename);
+
+		vk::PipelineShaderStageCreateInfo shader_stage_info = create_shader_stage_info(shader_module, shader.type);
+
+		// Create compute pipeline
+		vk::ComputePipelineCreateInfo compute_pipeline_info({}, shader_stage_info, this->layout_);
+		this->handle_ = this->device_.createComputePipeline(nullptr, compute_pipeline_info).value;
+
+		// Clean up shader module
+		this->device_.destroyShaderModule(shader_module);
+
+		this->initialised_ = true;
+	}
+	catch (vk::SystemError &err)
+	{ throw RF::engine_error(RF::format_view("Failed to create Vulkan compute pipeline: <0>", err.what())); }
+}
+
 
 void RF::vulkan::pipeline_impl_t::destroy()
 {
