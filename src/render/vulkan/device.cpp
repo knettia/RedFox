@@ -21,6 +21,38 @@ namespace
 		return graphics_family;
 	}
 
+	std::optional<std::uint32_t> find_compute_family(const vk::PhysicalDevice gpu)
+	{
+		std::optional<std::uint32_t> compute_family;
+
+		std::vector<vk::QueueFamilyProperties> queue_families = gpu.getQueueFamilyProperties();
+		for (std::uint32_t i = 0; i < queue_families.size(); ++i)
+		{
+			// Prefer a queue that supports compute but not graphics (optional)
+			if ((queue_families[i].queueFlags & vk::QueueFlagBits::eCompute) &&
+			!(queue_families[i].queueFlags & vk::QueueFlagBits::eGraphics))
+			{
+				compute_family = i;
+				break;
+			}
+		}
+
+		// Fallback: use any queue that supports compute (may be shared with graphics)
+		if (!compute_family.has_value())
+		{
+			for (std::uint32_t i = 0; i < queue_families.size(); ++i)
+			{
+				if (queue_families[i].queueFlags & vk::QueueFlagBits::eCompute)
+				{
+					compute_family = i;
+					break;
+				}
+			}
+		}
+
+		return compute_family;
+	}
+
 	std::optional<std::uint32_t> find_present_family(const vk::PhysicalDevice gpu, const vk::SurfaceKHR surface)
 	{
 		std::optional<std::uint32_t> present_family_index;
@@ -54,6 +86,12 @@ namespace
 			{
 				auto graphics = find_graphics_family(gpu);
 				if (!graphics.has_value()) continue;
+			}
+
+			if (info.has_compute_queue)
+			{
+				auto compute = find_compute_family(gpu);
+				if (!compute.has_value()) continue;
 			}
 
 			if (info.has_present_queue)
@@ -95,7 +133,10 @@ void RF::vulkan::device_impl_t::init(const RF::vulkan::instance_t instance,
 
 	auto graphics_family_opt = find_graphics_family(this->gpu_);
 
-	if (graphics_family_opt.has_value()) this->graphics_family_ = graphics_family_opt.value();
+	if (graphics_family_opt.has_value())
+	{
+		this->graphics_family_ = graphics_family_opt.value();
+	}
 	else
 	{
 		std::string_view GPU_name = this->gpu_.getProperties().deviceName;
@@ -107,6 +148,29 @@ void RF::vulkan::device_impl_t::init(const RF::vulkan::instance_t instance,
 	                                     this->graphics_family_,
 	                                     1, &queue_priorities,
 	                                     nullptr);
+
+	auto compute_family_opt = find_compute_family(this->gpu_);
+
+	if (info.has_compute_queue)
+	{
+		if (compute_family_opt.has_value())
+		{
+			this->compute_family_ = compute_family_opt.value();
+		}
+		else
+		{
+			std::string_view GPU_name = this->gpu_.getProperties().deviceName;
+			throw RF::engine_error(RF::format_view("No absolute compute family queue found for GPU: <0>", GPU_name));
+		}
+	}
+
+	// create queue for compute
+	vk::DeviceQueueCreateInfo queue_info_compute(
+		vk::DeviceQueueCreateFlags(0),
+		this->compute_family_,
+		1,
+		&queue_priorities
+	);
 
 	vk::PhysicalDeviceFeatures device_features = this->gpu_.getFeatures();
 
@@ -123,10 +187,11 @@ void RF::vulkan::device_impl_t::init(const RF::vulkan::instance_t instance,
 	                                 layers.size(), layers.data(),
 	                                 extensions.size(), extensions.data(),
 	                                 &device_features, nullptr);
-	
+
 	this->handle_ = this->gpu_.createDevice(create_info);
 
 	this->graphics_queue_ = this->handle_.getQueue(this->graphics_family_, 0);
+	this->compute_queue_ = this->handle_.getQueue(this->compute_family_, 0);
 
 	this->initialised_ = true;
 }
@@ -158,4 +223,14 @@ const vk::Queue &RF::vulkan::device_impl_t::graphics_queue() const
 const std::uint32_t &RF::vulkan::device_impl_t::graphics_family() const
 {
 	return this->graphics_family_;
+}
+
+const vk::Queue &RF::vulkan::device_impl_t::compute_queue() const
+{
+	return this->compute_queue_;
+}
+
+const std::uint32_t &RF::vulkan::device_impl_t::compute_family() const
+{
+	return this->compute_family_;
 }
