@@ -119,12 +119,12 @@ void RF::vulkan::descriptor_binding_impl_t::set_buffer(const RF::vulkan::super_b
 	this->device_.updateDescriptorSets(1, &descriptor_write, 0, nullptr);
 }
 
-void RF::vulkan::descriptor_binding_impl_t::set_sampler(const vk::Sampler sampler, const vk::ImageView image_view)
+void RF::vulkan::descriptor_binding_impl_t::set_sampler(const vk::Sampler sampler, const vk::ImageView view, const vk::ImageLayout layout)
 {
 	vk::DescriptorImageInfo image_info(
 		sampler,
-		image_view,
-		vk::ImageLayout::eShaderReadOnlyOptimal
+		view,
+		layout
 	);
 
 	vk::WriteDescriptorSet descriptor_write(
@@ -140,6 +140,30 @@ void RF::vulkan::descriptor_binding_impl_t::set_sampler(const vk::Sampler sample
 
 	this->device_.updateDescriptorSets(1, &descriptor_write, 0, nullptr);
 }
+
+void RF::vulkan::descriptor_binding_impl_t::set_image(const vk::ImageView view,
+                                                      const vk::ImageLayout layout)
+{
+    vk::DescriptorImageInfo image_info(
+		{},                 // no sampler for storage images
+		view,
+		layout              // e.g., vk::ImageLayout::eGeneral
+	);
+
+	vk::WriteDescriptorSet descriptor_write(
+		this->descriptor_set_->handle(),  // target descriptor set
+		this->index_,                     // binding index
+		0,                                // array element offset
+		1,                                // descriptor count
+		this->type_,                      // should be VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+		&image_info,                       // pointer to image info
+		nullptr,                           // buffer info (not used)
+		nullptr                            // texel buffer view (not used)
+	);
+
+	this->device_.updateDescriptorSets(1, &descriptor_write, 0, nullptr);
+}
+
 
 const std::uint16_t RF::vulkan::descriptor_binding_impl_t::index() const
 {

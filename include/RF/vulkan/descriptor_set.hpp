@@ -38,7 +38,8 @@ namespace RF::vulkan
 
 		void set_buffer(const RF::vulkan::buffer_t buffer, const vk::DeviceSize offset = 0);
 		void set_buffer(const RF::vulkan::super_buffer_t buffer, const vk::DeviceSize offset = 0);
-		void set_sampler(const vk::Sampler sampler, const vk::ImageView image_view);
+		void set_sampler(const vk::Sampler sampler, const vk::ImageView view, const vk::ImageLayout layout);
+		void set_image(const vk::ImageView view, const vk::ImageLayout layout);
 
 		[[nodiscard]] const std::uint16_t index() const;
 		[[nodiscard]] const vk::DescriptorType type() const;
