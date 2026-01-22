@@ -14,6 +14,7 @@ namespace RF::vulkan
 		vk::PhysicalDeviceFeatures required_features = {};
 
 		bool has_graphics_queue = true;
+		bool has_compute_queue = false;
 		bool has_present_queue = false;
 		vk::SurfaceKHR surface = nullptr;
 	};
@@ -36,6 +37,9 @@ namespace RF::vulkan
 
 		vk::Queue graphics_queue_;
 		std::uint32_t graphics_family_;
+
+		vk::Queue compute_queue_;
+		std::uint32_t compute_family_;
 	public:
 		device_impl_t() = default;
 
@@ -50,6 +54,9 @@ namespace RF::vulkan
 		
 		[[nodiscard]] const vk::Queue &graphics_queue() const;
 		[[nodiscard]] const std::uint32_t &graphics_family() const;
+
+		[[nodiscard]] const vk::Queue &compute_queue() const;
+		[[nodiscard]] const std::uint32_t &compute_family() const;
 	};
 
 	using device_t = RF::handle_ptr<device_impl_t>;
